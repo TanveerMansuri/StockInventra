@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  avatar       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions Session[]
+  sales    Sale[]
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  status      Status   @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+model Product {
+  id                String        @id @default(cuid())
+  name              String
+  sku               String        @unique
+  categoryId        String
+  purchasePrice     Decimal       @db.Decimal(10, 2)
+  marginPercent     Decimal       @db.Decimal(5, 2)
+  sellingPrice      Decimal       @db.Decimal(10, 2)
+  discountPercent   Decimal       @default(0) @db.Decimal(5, 2)
+  finalPrice        Decimal       @db.Decimal(10, 2)
+  initialStock      Int           @default(0)
+  currentStock      Int           @default(0)
+  lowStockThreshold Int           @default(10)
+  description       String?
+  image             String?
+  status            ProductStatus @default(IN_STOCK)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  category  Category        @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  saleItems SaleItem[]
+  movements StockMovement[]
+
+  @@index([categoryId])
+  @@index([status])
+}
+
+enum ProductStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+}
+
+model Sale {
+  id           String     @id @default(cuid())
+  userId       String? // Can be null if sale wasn't made by a specific user or user was deleted
+  subtotal     Decimal    @db.Decimal(10, 2)
+  discount     Decimal    @db.Decimal(10, 2)
+  finalAmount  Decimal    @db.Decimal(10, 2)
+  totalCost    Decimal    @db.Decimal(10, 2)
+  grossProfit  Decimal    @db.Decimal(10, 2)
+  profitMargin Decimal    @db.Decimal(5, 2)
+  status       SaleStatus @default(COMPLETED)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items SaleItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
+  PENDING
+}
+
+model SaleItem {
+  id          String   @id @default(cuid())
+  saleId      String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  unitCost    Decimal  @db.Decimal(10, 2) // Capture the purchasePrice of the product at the time of sale
+  discount    Decimal  @db.Decimal(5, 2) // Discount percentage on this item
+  subtotal    Decimal  @db.Decimal(10, 2)
+  finalAmount Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+model StockMovement {
+  id          String       @id @default(cuid())
+  productId   String
+  type        MovementType
+  quantity    Int
+  referenceId String? // Could link to a Sale ID or Purchase Order ID
+  note        String?
+  createdAt   DateTime     @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum MovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+}
+
+// Single-row table for global application settings
+model Settings {
+  id                String   @id @default("global") // We'll only ever have one record
+  businessName      String
+  email             String
+  phone             String?
+  address           String?
+  logo              String?
+  lowStockThreshold Int      @default(20)
+  defaultMargin     Decimal  @default(40) @db.Decimal(5, 2)
+  defaultDiscount   Decimal  @default(0) @db.Decimal(5, 2)
+  currency          String   @default("INR")
+  taxRate           Decimal  @default(18) @db.Decimal(5, 2)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

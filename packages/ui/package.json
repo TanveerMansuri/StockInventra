@@ -1,0 +1,10 @@
+{
+  "name": "@stock-inventra/ui",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "react": "^18.2.0",
+    "lucide-react": "^0.330.0"
+  }
+}
