@@ -12,8 +12,8 @@ export function SalesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const { data: sales, isLoading, refetch } = useSales({ limit: 1000 });
-  const { data: products } = useProducts({ limit: 1000 });
+  const { data: sales, isLoading, error, refetch } = useSales({ limit: 100 });
+  const { data: products } = useProducts({ limit: 100 });
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -222,6 +222,22 @@ export function SalesPage() {
                 <tr>
                   <td colSpan={10} className="text-center py-[60px] text-[15px] text-[#77706D]">
                     Loading sales data...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={10} className="text-center py-[80px]">
+                    <div className="flex flex-col items-center justify-center">
+                      <XCircle size={32} className="text-[#DC2626] mb-[12px]" />
+                      <span className="text-[16px] font-medium text-[#242124]">Failed to load sales</span>
+                      <span className="text-[14px] text-[#77706D] mt-[4px] mb-[16px]">{error}</span>
+                      <button 
+                        onClick={refetch}
+                        className="h-[40px] px-[16px] bg-white border border-[#EAE5E0] hover:bg-[#F5EFE6] text-[#242124] font-medium text-[14px] rounded-[8px] transition-colors"
+                      >
+                        Retry
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ) : filteredSales.length === 0 ? (

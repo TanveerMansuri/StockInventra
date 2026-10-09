@@ -56,10 +56,9 @@ export class PrismaInventoryRepository implements InventoryRepository {
       if (mov.type === "PURCHASE" || mov.type === "RETURN") {
         stockIn += mov.quantity;
       } else if (mov.type === "SALE") {
-        sold += mov.quantity;
+        sold += Math.abs(mov.quantity);
       } else if (mov.type === "ADJUSTMENT") {
-        if (mov.quantity > 0) stockIn += mov.quantity;
-        else sold += Math.abs(mov.quantity);
+        stockIn += mov.quantity;
       }
     }
     

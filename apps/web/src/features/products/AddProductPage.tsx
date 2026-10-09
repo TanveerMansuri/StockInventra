@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Input, Select, Textarea } from "@stock-inventra/ui";
 import { productsService, categoriesService } from "../../services/api";
 import { Category } from "@stock-inventra/types";
 
 export function AddProductPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const isEditMode = !!id;
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(isEditMode);
   const [error, setError] = useState<string | null>(null);
 
   // Form State
@@ -36,12 +39,36 @@ export function AddProductPage() {
     categoriesService.getCategories({ limit: 100 }).then(res => {
       if (res.success) {
         setCategories(res.data);
-        if (res.data.length > 0) {
+        if (res.data.length > 0 && !isEditMode) {
           setCategoryId(res.data[0].id);
         }
       }
     }).catch(console.error);
-  }, []);
+    
+    if (isEditMode) {
+      productsService.getProduct(id!).then(res => {
+        if (res.success) {
+          const product = res.data;
+          setName(product.name);
+          setSku(product.sku);
+          setCategoryId(product.categoryId);
+          setPurchasePrice(product.purchasePrice);
+          setMargin(product.marginPercent);
+          setDiscount(product.discountPercent);
+          setTax(product.taxPercent);
+          setInitialStock(product.initialStock); // Map to actual initialStock
+          setLowStockThreshold(product.lowStockThreshold);
+          setDescription(product.description || "");
+        } else {
+          setError(res.message || "Failed to load product details");
+        }
+      }).catch(err => {
+        setError(err.message || "Failed to load product details");
+      }).finally(() => {
+        setIsLoadingProduct(false);
+      });
+    }
+  }, [id, isEditMode]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +76,7 @@ export function AddProductPage() {
     setIsSubmitting(true);
 
     try {
-      const res = await productsService.createProduct({
+      const payload = {
         name,
         sku,
         categoryId,
@@ -60,7 +87,11 @@ export function AddProductPage() {
         initialStock,
         lowStockThreshold,
         description: description || undefined,
-      });
+      };
+      
+      const res = isEditMode 
+        ? await productsService.updateProduct(id!, payload)
+        : await productsService.createProduct(payload);
 
       if (res.success) {
         navigate("/products");
@@ -76,9 +107,13 @@ export function AddProductPage() {
 
   return (
     <PageContainer
-      title="Add Product"
-      description="Add a new product to your inventory."
+      title={isEditMode ? "Edit Product" : "Add Product"}
+      description={isEditMode ? "Update an existing product." : "Add a new product to your inventory."}
     >
+      {isLoadingProduct && isEditMode ? (
+        <div className="py-[40px] text-center text-[#77706D]">Loading product details...</div>
+      ) : (
+        <>
       {error && (
         <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
           {error}
@@ -270,12 +305,14 @@ export function AddProductPage() {
               disabled={isSubmitting}
               className="flex items-center justify-center h-[44px] px-[20px] rounded-[8px] bg-[#781529] text-[#FFFFFF] font-semibold hover:bg-[#601020] transition-colors focus:outline-none focus:ring-2 focus:ring-[#781529]/50 disabled:opacity-50"
             >
-              {isSubmitting ? "Saving..." : "Save Product"}
+              {isSubmitting ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update Product" : "Save Product")}
             </button>
           </div>
         </div>
 
       </form>
+      </>
+      )}
     </PageContainer>
   );
 }

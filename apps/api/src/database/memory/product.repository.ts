@@ -55,11 +55,12 @@ export class MemoryProductRepository implements ProductRepository {
     return product;
   }
 
-  async update(id: string, data: Partial<Product>): Promise<Product> {
+  async update(id: string, data: Partial<Product> & { _stockAdjustment?: number }): Promise<Product> {
     const product = memoryDb.products.get(id);
     if (!product) throw new Error("Product not found");
     
-    const updated = { ...product, ...data, updatedAt: new Date().toISOString() };
+    const { _stockAdjustment, ...updateData } = data as any;
+    const updated = { ...product, ...updateData, updatedAt: new Date().toISOString() };
     memoryDb.products.set(id, updated);
     return updated;
   }

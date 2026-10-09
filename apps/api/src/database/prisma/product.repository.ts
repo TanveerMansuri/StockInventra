@@ -87,12 +87,33 @@ export class PrismaProductRepository implements ProductRepository {
     return this.mapToProduct(product);
   }
 
-  async update(id: string, data: Partial<Product>, tx?: any): Promise<Product> {
+  async update(id: string, data: Partial<Product> & { _stockAdjustment?: number }, tx?: any): Promise<Product> {
     const client = tx || prisma;
-    const updateData: any = { ...data };
+    const { _stockAdjustment, ...updateData } = data as any;
     delete updateData.id;
     delete updateData.createdAt;
     delete updateData.updatedAt;
+
+    if (_stockAdjustment) {
+      const product = await client.$transaction(async (prismaTx: any) => {
+        const p = await prismaTx.product.update({
+          where: { id },
+          data: updateData,
+        });
+
+        await prismaTx.stockMovement.create({
+          data: {
+            productId: id,
+            type: "ADJUSTMENT",
+            quantity: _stockAdjustment,
+            note: "Initial stock correction during product edit",
+          }
+        });
+        
+        return p;
+      });
+      return this.mapToProduct(product);
+    }
 
     const product = await client.product.update({
       where: { id },

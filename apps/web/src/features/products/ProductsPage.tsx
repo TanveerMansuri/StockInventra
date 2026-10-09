@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import { Plus, Search, Trash2, Edit, ChevronDown, MoreHorizontal } from "lucide-react";
 import { PageContainer } from "../../components/layout/PageContainer";
-import { Card, Dropdown } from "@stock-inventra/ui";
+import { Card } from "@stock-inventra/ui";
 import { useProducts } from "../../hooks/useProducts";
 import { useCategories } from "../../hooks/useCategories";
 import { productsService } from "../../services/api";
+import { DeleteProductModal } from "./DeleteProductModal";
 
 export function ProductsPage() {
   const [searchParams] = useSearchParams();
@@ -47,18 +49,55 @@ export function ProductsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      try {
-        const res = await productsService.deleteProduct(id);
-        if (res.success) {
-          refetch();
-        } else {
-          alert("Could not delete product");
-        }
-      } catch (err: any) {
-        alert(err.message || "Failed to delete");
+  const [actionMenu, setActionMenu] = useState<{ id: string; name: string; top: number; right: number } | null>(null);
+  const [deleteProduct, setDeleteProduct] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const handleClick = () => setActionMenu(null);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActionMenu(null);
+    };
+    if (actionMenu) {
+      document.addEventListener("click", handleClick);
+      document.addEventListener("keydown", handleKey);
+      document.addEventListener("scroll", handleClick, true);
+    }
+    return () => {
+      document.removeEventListener("click", handleClick);
+      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("scroll", handleClick, true);
+    };
+  }, [actionMenu]);
+
+  const openActionMenu = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    let top = rect.bottom + 4;
+    let right = window.innerWidth - rect.right;
+    
+    if (top + 110 > window.innerHeight) {
+      top = rect.top - 110 - 4;
+    }
+    
+    setActionMenu({ id, name, top, right });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteProduct) return;
+    setIsDeleting(true);
+    try {
+      const res = await productsService.deleteProduct(deleteProduct.id);
+      if (res.success) {
+        refetch();
+        setDeleteProduct(null);
+      } else {
+        alert(res.message || "Could not delete product");
       }
+    } catch (err: any) {
+      alert(err.message || "Failed to delete");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -192,31 +231,13 @@ export function ProductsPage() {
                             {product.status.replace("_", " ")}
                           </div>
                         </td>
-                        <td className="px-[20px] py-[12px] text-right">
-                          <Dropdown
-                            align="right"
-                            trigger={
-                              <button className="flex h-[32px] w-[32px] items-center justify-center rounded-[6px] text-[#77706D] hover:bg-[#F5EFE6] hover:text-[#781529] transition-colors">
-                                <MoreHorizontal size={18} />
-                              </button>
-                            }
-                            items={[
-                              {
-                                id: "edit",
-                                label: <span className="text-[13px] font-medium text-[#242124]">Edit Product</span>,
-                                icon: <Edit size={14} className="text-[#77706D]" />,
-                                onClick: () => {
-                                  navigate(`/products/edit/${product.id}`);
-                                }
-                              },
-                              {
-                                id: "delete",
-                                label: <span className="text-[13px] font-medium text-[#DC2626]">Delete Product</span>,
-                                icon: <Trash2 size={14} className="text-[#DC2626]" />,
-                                onClick: () => handleDelete(product.id)
-                              }
-                            ]}
-                          />
+                        <td className="px-[20px] py-[12px] text-right relative">
+                          <button 
+                            onClick={(e) => openActionMenu(e, product.id, product.name)}
+                            className="flex h-[36px] w-[36px] items-center justify-center rounded-[9px] text-[#77706D] hover:bg-[#F5E8EC] hover:text-[#7A1830] transition-colors outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-1 ml-auto"
+                          >
+                            <MoreHorizontal size={20} />
+                          </button>
                         </td>
                       </tr>
                     );
@@ -227,6 +248,44 @@ export function ProductsPage() {
           </div>
         </Card>
       </div>
+
+      <DeleteProductModal
+        isOpen={!!deleteProduct}
+        onClose={() => setDeleteProduct(null)}
+        onConfirm={confirmDelete}
+        productName={deleteProduct?.name || ""}
+        isDeleting={isDeleting}
+      />
+
+      {actionMenu && createPortal(
+        <div 
+          className="fixed z-[100] w-[184px] bg-[#FFFFFF] border border-[#EAE5E0] rounded-[12px] p-[6px] shadow-[0_10px_30px_rgba(36,33,36,0.12)]"
+          style={{ top: actionMenu.top, right: actionMenu.right }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              navigate(`/products/edit/${actionMenu.id}`);
+              setActionMenu(null);
+            }}
+            className="flex items-center w-full h-[42px] px-[12px] mb-[2px] rounded-[8px] hover:bg-[#F5E8EC] group transition-colors outline-none focus:ring-2 focus:ring-[#7A1830]"
+          >
+            <Edit className="w-[17px] h-[17px] text-[#77706D] group-hover:text-[#7A1830]" />
+            <span className="ml-[10px] text-[14px] font-medium text-[#242124]">Edit Product</span>
+          </button>
+          <button
+            onClick={() => {
+              setDeleteProduct({ id: actionMenu.id, name: actionMenu.name });
+              setActionMenu(null);
+            }}
+            className="flex items-center w-full h-[42px] px-[12px] rounded-[8px] hover:bg-[#FEF2F2] transition-colors outline-none focus:ring-2 focus:ring-[#DC2626]"
+          >
+            <Trash2 className="w-[17px] h-[17px] text-[#DC2626]" />
+            <span className="ml-[10px] text-[14px] font-medium text-[#DC2626]">Delete Product</span>
+          </button>
+        </div>,
+        document.body
+      )}
     </PageContainer>
   );
 }

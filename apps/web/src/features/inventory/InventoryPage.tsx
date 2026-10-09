@@ -2,8 +2,7 @@ import { useState } from "react";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { useInventory } from "../../hooks/useInventory";
 import { useCategories } from "../../hooks/useCategories";
-import { Search } from "lucide-react";
-import { Select } from "@stock-inventra/ui";
+import { Search, ChevronDown } from "lucide-react";
 
 export function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,27 +57,35 @@ export function InventoryPage() {
               className="w-full h-[40px] pl-[36px] pr-[12px] bg-[#FFFFFF] border border-[#EAE5E0] rounded-[8px] text-[14px] outline-none focus:border-[#7A1830] focus:ring-1 focus:ring-[#7A1830]/20"
             />
           </div>
-          <div className="w-full sm:w-[200px]">
-            <Select 
+          <div className="relative w-full sm:w-[200px]">
+            <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              options={[
-                { label: "All Categories", value: "" },
-                ...(categories || []).map(c => ({ label: c.name, value: c.id }))
-              ]}
-            />
+              className="appearance-none block h-[40px] w-full rounded-[8px] border border-[#EAE5E0] bg-[#FFFFFF] py-[10px] pl-[14px] pr-[36px] text-[14px] font-medium text-[#242124] focus:border-[#7A1830] focus:outline-none focus:ring-1 focus:ring-[#7A1830] transition-colors cursor-pointer"
+            >
+              <option value="">All Categories</option>
+              {(categories || []).map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-[14px] text-[#77706D]">
+              <ChevronDown size={16} />
+            </div>
           </div>
-          <div className="w-full sm:w-[180px]">
-            <Select 
+          <div className="relative w-full sm:w-[180px]">
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              options={[
-                { label: "All Status", value: "" },
-                { label: "In Stock", value: "IN_STOCK" },
-                { label: "Low Stock", value: "LOW_STOCK" },
-                { label: "Out of Stock", value: "OUT_OF_STOCK" },
-              ]}
-            />
+              className="appearance-none block h-[40px] w-full rounded-[8px] border border-[#EAE5E0] bg-[#FFFFFF] py-[10px] pl-[14px] pr-[36px] text-[14px] font-medium text-[#242124] focus:border-[#7A1830] focus:outline-none focus:ring-1 focus:ring-[#7A1830] transition-colors cursor-pointer"
+            >
+              <option value="">All Status</option>
+              <option value="IN_STOCK">In Stock</option>
+              <option value="LOW_STOCK">Low Stock</option>
+              <option value="OUT_OF_STOCK">Out of Stock</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-[14px] text-[#77706D]">
+              <ChevronDown size={16} />
+            </div>
           </div>
         </div>
 

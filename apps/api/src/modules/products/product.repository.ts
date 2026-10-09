@@ -5,6 +5,6 @@ export interface ProductRepository {
   findById(id: string, tx?: any): Promise<Product | null>;
   findBySku(sku: string, tx?: any): Promise<Product | null>;
   create(data: Omit<Product, "id" | "createdAt" | "updatedAt">, tx?: any): Promise<Product>;
-  update(id: string, data: Partial<Product>, tx?: any): Promise<Product>;
+  update(id: string, data: Partial<Product> & { _stockAdjustment?: number }, tx?: any): Promise<Product>;
   delete(id: string, tx?: any): Promise<void>;
 }

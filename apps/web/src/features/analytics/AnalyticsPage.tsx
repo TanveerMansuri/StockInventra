@@ -86,7 +86,7 @@ export function AnalyticsPage() {
         {/* Charts Row */}
         <div className="grid grid-cols-1 gap-24 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <SalesChart data={[]} /> {/* Using empty until chart endpoint ready */}
+            <SalesChart data={data.salesData || []} />
           </div>
           <div className="lg:col-span-1">
             <TopProducts products={data.topSellingProducts} />

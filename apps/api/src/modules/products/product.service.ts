@@ -73,17 +73,26 @@ export class ProductService {
     );
 
     const lowThreshold = valid.lowStockThreshold ?? product.lowStockThreshold;
-    const status = this.pricingService.determineStatus(product.currentStock, lowThreshold);
 
-    // Prevent manual stock update here
     const { currentStock, initialStock, ...allowedUpdates } = valid as any;
-
-    return this.repo.update(id, {
+    
+    const updateData: any = {
       ...allowedUpdates,
       sellingPrice,
       finalPrice,
-      status
-    });
+    };
+
+    if (initialStock !== undefined && initialStock !== product.initialStock) {
+      const difference = initialStock - product.initialStock;
+      updateData.initialStock = initialStock;
+      updateData.currentStock = product.currentStock + difference;
+      updateData._stockAdjustment = difference;
+    }
+
+    const currentStockAfterUpdate = updateData.currentStock ?? product.currentStock;
+    updateData.status = this.pricingService.determineStatus(currentStockAfterUpdate, lowThreshold);
+
+    return this.repo.update(id, updateData);
   }
 
   async delete(id: string) {
