@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageContainer } from "../../components/layout/PageContainer";
-import { Select } from "@stock-inventra/ui";
+import { DateRangeFilter } from "../../components/common/DateRangeFilter";
 import { IndianRupee, TrendingUp, Package, PackageCheck } from "lucide-react";
 import { MetricCard } from "./components/MetricCard";
 import { SalesChart } from "./components/SalesChart";
@@ -37,21 +37,7 @@ export function DashboardPage() {
     <PageContainer
       title="Dashboard"
       description="Welcome back! Here's what's happening with your inventory today."
-      action={
-        <div className="w-[130px] relative">
-          <Select
-            value={period}
-            onChange={(e) => setPeriod(e.target.value)}
-            className="!h-[38px] !bg-white !border-[#EAE5E0] !rounded-[8px] !text-[13px] !font-medium !text-[#3C3834] !px-[12px] !pr-[28px] !shadow-sm cursor-pointer appearance-none w-full"
-            options={[
-              { label: "This Week", value: "thisWeek" },
-              { label: "This Month", value: "thisMonth" },
-              { label: "Last 3 Months", value: "last3Months" },
-              { label: "Last 6 Months", value: "last6Months" },
-            ]}
-          />
-        </div>
-      }
+      action={<DateRangeFilter value={period} onChange={setPeriod} />}
     >
       <div className="flex flex-col gap-24">
         {/* Metrics Row */}

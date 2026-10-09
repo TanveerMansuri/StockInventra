@@ -49,7 +49,9 @@ export class SaleService {
         const unitPrice = product.sellingPrice;
         const subtotal = unitPrice * item.quantity;
         const discountAmount = (subtotal * item.discount) / 100;
-        const finalAmount = subtotal - discountAmount;
+        const taxableAmount = subtotal - discountAmount;
+        const taxAmount = (taxableAmount * (product.taxPercent || 0)) / 100;
+        const finalAmount = taxableAmount + taxAmount;
         const cost = product.purchasePrice * item.quantity;
 
         totalSubtotal += subtotal;

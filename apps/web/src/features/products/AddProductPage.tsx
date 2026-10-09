@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "../../components/layout/PageContainer";
-import { Button, Card, CardHeader, CardTitle, CardContent, Input, Select, Textarea } from "@stock-inventra/ui";
+import { Input, Select, Textarea } from "@stock-inventra/ui";
 import { productsService, categoriesService } from "../../services/api";
 import { Category } from "@stock-inventra/types";
 
@@ -19,6 +19,7 @@ export function AddProductPage() {
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [margin, setMargin] = useState<number>(0);
   const [discount, setDiscount] = useState<number>(0);
+  const [tax, setTax] = useState<number>(0);
   const [initialStock, setInitialStock] = useState<number>(0);
   const [lowStockThreshold, setLowStockThreshold] = useState<number>(10);
   const [description, setDescription] = useState("");
@@ -27,7 +28,9 @@ export function AddProductPage() {
   const marginAmount = (purchasePrice * margin) / 100;
   const sellingPrice = purchasePrice + marginAmount;
   const discountAmount = (sellingPrice * discount) / 100;
-  const finalPrice = sellingPrice - discountAmount;
+  const taxableAmount = sellingPrice - discountAmount;
+  const taxAmount = (taxableAmount * tax) / 100;
+  const finalPrice = taxableAmount + taxAmount;
 
   useEffect(() => {
     categoriesService.getCategories({ limit: 100 }).then(res => {
@@ -53,6 +56,7 @@ export function AddProductPage() {
         purchasePrice,
         marginPercent: margin,
         discountPercent: discount,
+        taxPercent: tax,
         initialStock,
         lowStockThreshold,
         description: description || undefined,
@@ -81,135 +85,193 @@ export function AddProductPage() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 gap-24 lg:grid-cols-3">
+      <form onSubmit={handleSave} className="flex flex-col lg:flex-row gap-[24px]">
         
         {/* Main Form Area */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardContent className="grid grid-cols-1 gap-24 p-24 sm:grid-cols-2">
-              <Input 
-                label="Product Name" 
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Premium Coffee Beans" 
-                required 
-              />
-              <Input 
-                label="SKU" 
-                value={sku}
-                onChange={e => setSku(e.target.value)}
-                placeholder="PCB-001" 
-                required 
-              />
+        <div className="flex-grow lg:w-2/3">
+          <div className="bg-[#FFFFFF] rounded-[12px] border border-[#EAE5E0] p-[24px] sm:p-[28px] shadow-sm">
+            <div className="grid grid-cols-12 gap-x-[16px] gap-y-[20px]">
+              <div className="col-span-12 sm:col-span-7">
+                <Input 
+                  label="Product Name" 
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="Premium Coffee Beans" 
+                  required 
+                />
+              </div>
+              <div className="col-span-12 sm:col-span-5">
+                <Input 
+                  label="SKU" 
+                  value={sku}
+                  onChange={e => setSku(e.target.value)}
+                  placeholder="PCB-001" 
+                  required 
+                />
+              </div>
               
-              <Select 
-                label="Category" 
-                value={categoryId}
-                onChange={e => setCategoryId(e.target.value)}
-                options={categories.map(c => ({ label: c.name, value: c.id }))} 
-                required
-              />
-              <Input 
-                label="Purchase Price (₹)" 
-                type="number" 
-                value={purchasePrice || ''}
-                onChange={(e) => setPurchasePrice(Number(e.target.value))}
-                placeholder="250" 
-                required 
-                min={0}
-              />
+              <div className="col-span-12 sm:col-span-6">
+                <Select 
+                  label="Category" 
+                  value={categoryId}
+                  onChange={e => setCategoryId(e.target.value)}
+                  options={[
+                    { label: "Select category...", value: "" },
+                    ...categories.map(c => ({ label: c.name, value: c.id }))
+                  ]} 
+                  required
+                />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Purchase Price (₹)" 
+                  type="number" 
+                  value={purchasePrice || ''}
+                  onChange={(e) => setPurchasePrice(Number(e.target.value))}
+                  placeholder="250" 
+                  required 
+                  min={0}
+                />
+              </div>
               
-              <Input 
-                label="Margin (%)" 
-                type="number" 
-                value={margin || ''}
-                onChange={(e) => setMargin(Number(e.target.value))}
-                placeholder="40" 
-                min={0}
-              />
-              <Input 
-                label="Selling Price Preview (₹)" 
-                type="number" 
-                value={sellingPrice}
-                disabled 
-              />
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Margin (%)" 
+                  type="number" 
+                  value={margin || ''}
+                  onChange={(e) => setMargin(Number(e.target.value))}
+                  placeholder="40" 
+                  min={0}
+                  required
+                />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Selling Price Preview (₹)" 
+                  type="number" 
+                  value={sellingPrice}
+                  disabled 
+                  className="bg-[#FCFCFB] text-[#77706D]"
+                />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Discount (%)" 
+                  type="number" 
+                  value={discount || ''}
+                  onChange={(e) => setDiscount(Number(e.target.value))}
+                  placeholder="0" 
+                  min={0}
+                />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Tax (%)" 
+                  type="number" 
+                  value={tax || ''}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (val >= 0 && val <= 100) setTax(val);
+                  }}
+                  placeholder="0" 
+                  min={0}
+                  max={100}
+                />
+              </div>
               
-              <Input 
-                label="Initial Stock" 
-                type="number" 
-                value={initialStock || ''}
-                onChange={e => setInitialStock(Number(e.target.value))}
-                placeholder="100" 
-                min={0}
-              />
-              <Input 
-                label="Low Stock Threshold" 
-                type="number" 
-                value={lowStockThreshold || ''}
-                onChange={e => setLowStockThreshold(Number(e.target.value))}
-                placeholder="20" 
-                min={0}
-              />
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Initial Stock" 
+                  type="number" 
+                  value={initialStock === 0 && !initialStock.toString().match(/^0$/) ? '' : initialStock}
+                  onChange={e => setInitialStock(Number(e.target.value))}
+                  placeholder="100" 
+                  required
+                  min={0}
+                />
+              </div>
+              <div className="col-span-12 sm:col-span-6">
+                <Input 
+                  label="Low Stock Threshold" 
+                  type="number" 
+                  value={lowStockThreshold === 0 && !lowStockThreshold.toString().match(/^0$/) ? '' : lowStockThreshold}
+                  onChange={e => setLowStockThreshold(Number(e.target.value))}
+                  placeholder="20" 
+                  required
+                  min={0}
+                />
+              </div>
               
-              <div className="sm:col-span-2">
+              <div className="col-span-12">
                 <Textarea 
                   label="Description" 
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   placeholder="High quality premium coffee beans, 500g pack." 
+                  className="min-h-[85px]"
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Sidebar Calculation Area */}
-        <div className="flex flex-col gap-24">
-          <Card>
-            <CardHeader className="border-b border-border bg-background/50 p-16">
-              <CardTitle className="text-body-strong">Price Calculation</CardTitle>
-            </CardHeader>
-            <CardContent className="p-16">
-              <div className="flex flex-col gap-12 text-body">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Purchase Price</span>
-                  <span>₹{purchasePrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">+ Margin ({margin}%)</span>
-                  <span>₹{marginAmount.toFixed(2)}</span>
-                </div>
-                <div className="my-8 border-t border-border" />
-                <div className="flex justify-between font-medium">
-                  <span>= Selling Price</span>
-                  <span>₹{sellingPrice.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between mt-8">
-                  <span className="text-text-secondary">- Discount ({discount}%)</span>
-                  <span>₹{discountAmount.toFixed(2)}</span>
-                </div>
-                <div className="mt-8 mb-4">
-                  <Input 
-                    type="number" 
-                    placeholder="Discount %" 
-                    value={discount || ''}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
-                  />
-                </div>
-                <div className="my-8 border-t border-border" />
-                <div className="flex justify-between font-bold text-primary">
-                  <span>= Final Sale Price</span>
-                  <span>₹{finalPrice.toFixed(2)}</span>
-                </div>
+        <div className="lg:w-1/3 flex flex-col gap-[20px]">
+          <div className="bg-[#F5EFE6] rounded-[12px] border border-[#EAE5E0] p-[24px]">
+            <h3 className="text-[#242124] text-[17px] font-semibold mb-[20px]">Price Calculation</h3>
+            
+            <div className="flex flex-col gap-[14px]">
+              <div className="flex justify-between items-center text-[14px]">
+                <span className="text-[#77706D]">Purchase Price</span>
+                <span className="text-[#242124] font-medium">₹{purchasePrice.toFixed(2)}</span>
               </div>
-            </CardContent>
-          </Card>
+              <div className="flex justify-between items-center text-[14px]">
+                <span className="text-[#77706D]">Margin ({margin}%)</span>
+                <span className="text-[#242124] font-medium">₹{marginAmount.toFixed(2)}</span>
+              </div>
+              
+              <div className="h-[1px] bg-[#EAE5E0] my-[4px]" />
+              
+              <div className="flex justify-between items-center text-[15px] font-semibold">
+                <span className="text-[#242124]">Selling Price</span>
+                <span className="text-[#242124]">₹{sellingPrice.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between items-center text-[14px] mt-[4px]">
+                <span className="text-[#77706D]">Discount ({discount}%)</span>
+                <span className="text-[#242124] font-medium">₹{discountAmount.toFixed(2)}</span>
+              </div>
 
-          <div className="flex justify-end gap-16">
-            <Button type="button" variant="secondary" onClick={() => navigate("/products")} disabled={isSubmitting}>Cancel</Button>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              <div className="flex justify-between items-center text-[14px]">
+                <span className="text-[#77706D]">Tax ({tax}%)</span>
+                <span className="text-[#242124] font-medium">₹{taxAmount.toFixed(2)}</span>
+              </div>
+              
+              <div className="h-[1px] bg-[#EAE5E0] my-[4px]" />
+              
+              <div className="flex justify-between items-center text-[16px] font-bold text-[#781529]">
+                <span>Final Sale Price</span>
+                <span>₹{finalPrice.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-[12px]">
+            <button 
+              type="button" 
+              onClick={() => navigate("/products")} 
+              disabled={isSubmitting}
+              className="flex items-center justify-center h-[44px] px-[20px] rounded-[8px] bg-[#FFFFFF] border border-[#EAE5E0] text-[#242124] font-medium hover:bg-[#F5EFE6] transition-colors focus:outline-none focus:ring-2 focus:ring-[#781529]/50"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex items-center justify-center h-[44px] px-[20px] rounded-[8px] bg-[#781529] text-[#FFFFFF] font-semibold hover:bg-[#601020] transition-colors focus:outline-none focus:ring-2 focus:ring-[#781529]/50 disabled:opacity-50"
+            >
               {isSubmitting ? "Saving..." : "Save Product"}
-            </Button>
+            </button>
           </div>
         </div>
 

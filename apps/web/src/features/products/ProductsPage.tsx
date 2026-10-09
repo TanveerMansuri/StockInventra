@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { Plus, Search, Filter, Trash2, Edit } from "lucide-react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { Plus, Search, Trash2, Edit, ChevronDown, MoreHorizontal } from "lucide-react";
 import { PageContainer } from "../../components/layout/PageContainer";
-import { Button, Input, Select, Badge, Card } from "@stock-inventra/ui";
+import { Card, Dropdown } from "@stock-inventra/ui";
 import { useProducts } from "../../hooks/useProducts";
+import { useCategories } from "../../hooks/useCategories";
 import { productsService } from "../../services/api";
 
 export function ProductsPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialSearch = searchParams.get("search") || "";
   
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -20,6 +22,8 @@ export function ProductsPage() {
     categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
+
+  const { data: categories = [] } = useCategories();
 
   // Sync if URL changes
   useEffect(() => {
@@ -35,6 +39,13 @@ export function ProductsPage() {
       setDebouncedSearch(searchQuery);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
@@ -54,61 +65,64 @@ export function ProductsPage() {
   return (
     <PageContainer
       title="Products"
-      description="Manage your product catalog, pricing, and details."
-      action={
-        <Link to="/products/new">
-          <Button variant="primary" className="gap-8">
-            <Plus size={16} />
-            Add Product
-          </Button>
-        </Link>
-      }
+      description="Manage your products and inventory."
     >
       <div className="flex flex-col gap-24">
-        {/* Filters and Search */}
-        <div className="flex flex-col gap-16 md:flex-row md:items-center md:justify-between">
-          <div className="flex w-full flex-col gap-16 sm:w-auto sm:flex-row">
-            <div className="relative w-full sm:w-64">
-              <div className="absolute inset-y-0 left-0 pl-12 flex items-center pointer-events-none text-text-secondary">
-                <Search size={16} />
+        {/* Filter Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-[12px]">
+          <div className="flex flex-col sm:flex-row gap-[12px] flex-grow">
+            <div className="relative flex-grow max-w-[400px]">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-[14px] text-[#77706D]">
+                <Search size={18} />
               </div>
-              <Input
+              <input
+                type="text"
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleSearch}
-                className="pl-36"
+                className="block h-[44px] w-full rounded-[8px] border border-[#EAE5E0] bg-[#FFFFFF] py-[10px] pl-[40px] pr-[14px] text-[14px] text-[#242124] placeholder:text-[#77706D] focus:border-[#781529] focus:outline-none focus:ring-1 focus:ring-[#781529] transition-colors"
               />
             </div>
             
-            <div className="flex w-full gap-16 sm:w-auto">
-              <Select
+            <div className="relative w-full sm:w-[190px]">
+              <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                options={[
-                  { label: "All Categories", value: "all" },
-                  { label: "Electronics", value: "cmuzdvb84000110abyyv9f7k9" }, // Minimal hardcoded test ID
-                ]}
-                className="w-full sm:w-48"
-              />
-              <Select
+                className="appearance-none block h-[44px] w-full rounded-[8px] border border-[#EAE5E0] bg-[#FFFFFF] py-[10px] pl-[14px] pr-[36px] text-[14px] font-medium text-[#242124] focus:border-[#781529] focus:outline-none focus:ring-1 focus:ring-[#781529] transition-colors cursor-pointer"
+              >
+                <option value="all">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-[14px] text-[#77706D]">
+                <ChevronDown size={16} />
+              </div>
+            </div>
+  
+            <div className="relative w-full sm:w-[165px]">
+              <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                options={[
-                  { label: "All Status", value: "all" },
-                  { label: "In Stock", value: "IN_STOCK" },
-                  { label: "Low Stock", value: "LOW_STOCK" },
-                  { label: "Out of Stock", value: "OUT_OF_STOCK" },
-                ]}
-                className="w-full sm:w-48"
-              />
+                className="appearance-none block h-[44px] w-full rounded-[8px] border border-[#EAE5E0] bg-[#FFFFFF] py-[10px] pl-[14px] pr-[36px] text-[14px] font-medium text-[#242124] focus:border-[#781529] focus:outline-none focus:ring-1 focus:ring-[#781529] transition-colors cursor-pointer"
+              >
+                <option value="all">All Status</option>
+                <option value="IN_STOCK">In Stock</option>
+                <option value="LOW_STOCK">Low Stock</option>
+                <option value="OUT_OF_STOCK">Out of Stock</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-[14px] text-[#77706D]">
+                <ChevronDown size={16} />
+              </div>
             </div>
           </div>
-          
-          <Button variant="outline" className="gap-8 md:w-auto">
-            <Filter size={16} />
-            More Filters
-          </Button>
+          <Link to="/products/new" className="shrink-0">
+            <button className="flex items-center justify-center w-full sm:w-auto h-[44px] bg-[#781529] hover:bg-[#601020] text-white rounded-[8px] font-semibold text-[14px] gap-[8px] px-[20px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#781529]/50">
+              <Plus size={16} />
+              Add Product
+            </button>
+          </Link>
         </div>
 
         {/* Products Table */}
@@ -117,64 +131,96 @@ export function ProductsPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-background text-text-secondary border-b border-border">
                 <tr>
-                  <th className="px-[16px] py-[10px] font-semibold text-[12px] tracking-wider uppercase">Product</th>
-                  <th className="px-[16px] py-[10px] font-semibold text-[12px] tracking-wider uppercase">SKU</th>
-                  <th className="px-[16px] py-[10px] font-semibold text-[12px] tracking-wider uppercase">Price</th>
-                  <th className="px-[16px] py-[10px] font-semibold text-[12px] tracking-wider uppercase">Stock</th>
-                  <th className="px-[16px] py-[10px] font-semibold text-[12px] tracking-wider uppercase">Status</th>
-                  <th className="px-[16px] py-[10px] font-semibold text-[12px] tracking-wider uppercase text-right">Actions</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">Product</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">SKU</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">Category</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">Purchase Price</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">Selling Price</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">Stock</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase">Status</th>
+                  <th className="px-[20px] py-[12px] font-semibold text-[12px] text-[#77706D] uppercase text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-[#EAE5E0] bg-[#FFFFFF]">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-[16px] py-[32px] text-center text-text-secondary">
+                    <td colSpan={8} className="px-[20px] py-[32px] text-center text-[#77706D] text-[13px]">
                       Loading products...
                     </td>
                   </tr>
                 ) : data.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-[16px] py-[32px] text-center text-text-secondary">
+                    <td colSpan={8} className="px-[20px] py-[32px] text-center text-[#77706D] text-[13px]">
                       No products found.
                     </td>
                   </tr>
                 ) : (
-                  data.map((product) => (
-                    <tr key={product.id} className="transition-colors hover:bg-background/50">
-                      <td className="px-[16px] py-[12px]">
-                        <div className="flex items-center gap-[12px]">
-                          <div className="flex h-[32px] w-[32px] items-center justify-center rounded-md bg-background font-medium text-text-secondary text-[12px]">
-                            {product.name.charAt(0)}
+                  data.map((product) => {
+                    const productCategory = categories.find((c) => c.id === product.categoryId);
+                    return (
+                      <tr key={product.id} className="transition-colors hover:bg-[#FDFCF9] group">
+                        <td className="px-[20px] py-[12px] h-[64px]">
+                          <div className="flex items-center gap-[12px]">
+                            {product.image ? (
+                              <img src={product.image} alt={product.name} className="h-[36px] w-[36px] rounded-[6px] object-cover border border-[#EAE5E0]" />
+                            ) : (
+                              <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[6px] bg-[#F5EFE6] font-semibold text-[#781529] text-[14px]">
+                                {product.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex flex-col">
+                              <span className="font-medium text-[#242124] text-[14px] leading-tight">{product.name}</span>
+                              <span className="text-[12px] text-[#77706D] mt-[2px] sm:hidden block">{product.sku}</span>
+                            </div>
                           </div>
-                          <span className="font-semibold text-text-primary text-[13px]">{product.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-[16px] py-[12px] text-text-secondary text-[13px]">{product.sku}</td>
-                      <td className="px-[16px] py-[12px] text-text-primary font-semibold text-[13px]">₹{product.finalPrice.toLocaleString()}</td>
-                      <td className="px-[16px] py-[12px] text-text-secondary text-[13px]">{product.currentStock}</td>
-                      <td className="px-[16px] py-[12px]">
-                        <Badge 
-                          variant={product.status === "IN_STOCK" ? "success" : product.status === "LOW_STOCK" ? "warning" : "danger"}
-                        >
-                          {product.status.replace("_", " ")}
-                        </Badge>
-                      </td>
-                      <td className="px-[16px] py-[12px] text-right">
-                        <div className="flex items-center justify-end gap-[8px]">
-                          <Button variant="ghost" className="h-[28px] w-[28px] p-0 text-text-secondary hover:text-primary">
-                            <Edit size={14} />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            onClick={() => handleDelete(product.id)}
-                            className="h-[28px] w-[28px] p-0 text-text-secondary hover:text-semantic-error"
-                          >
-                            <Trash2 size={14} />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="px-[20px] py-[12px] text-[#77706D] text-[13px] hidden sm:table-cell">{product.sku}</td>
+                        <td className="px-[20px] py-[12px] text-[#77706D] text-[13px]">{productCategory ? productCategory.name : "Uncategorized"}</td>
+                        <td className="px-[20px] py-[12px] text-[#77706D] text-[13px]">₹{product.purchasePrice.toLocaleString()}</td>
+                        <td className="px-[20px] py-[12px] text-[#242124] font-medium text-[13px]">₹{product.finalPrice.toLocaleString()}</td>
+                        <td className="px-[20px] py-[12px]">
+                          <span className={`text-[13px] font-medium ${product.currentStock <= product.lowStockThreshold ? 'text-[#D97706]' : 'text-[#059669]'}`}>
+                            {product.currentStock.toLocaleString()}
+                          </span>
+                        </td>
+                        <td className="px-[20px] py-[12px]">
+                          <div className={`inline-flex items-center px-[8px] py-[2px] rounded-full text-[12px] font-medium ${
+                            product.status === "IN_STOCK" ? "bg-[#059669]/10 text-[#059669]" : 
+                            product.status === "LOW_STOCK" ? "bg-[#D97706]/10 text-[#D97706]" : 
+                            "bg-[#DC2626]/10 text-[#DC2626]"
+                          }`}>
+                            {product.status.replace("_", " ")}
+                          </div>
+                        </td>
+                        <td className="px-[20px] py-[12px] text-right">
+                          <Dropdown
+                            align="right"
+                            trigger={
+                              <button className="flex h-[32px] w-[32px] items-center justify-center rounded-[6px] text-[#77706D] hover:bg-[#F5EFE6] hover:text-[#781529] transition-colors">
+                                <MoreHorizontal size={18} />
+                              </button>
+                            }
+                            items={[
+                              {
+                                id: "edit",
+                                label: <span className="text-[13px] font-medium text-[#242124]">Edit Product</span>,
+                                icon: <Edit size={14} className="text-[#77706D]" />,
+                                onClick: () => {
+                                  navigate(`/products/edit/${product.id}`);
+                                }
+                              },
+                              {
+                                id: "delete",
+                                label: <span className="text-[13px] font-medium text-[#DC2626]">Delete Product</span>,
+                                icon: <Trash2 size={14} className="text-[#DC2626]" />,
+                                onClick: () => handleDelete(product.id)
+                              }
+                            ]}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

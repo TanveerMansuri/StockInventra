@@ -1,11 +1,14 @@
 export class ProductPricingService {
-  calculatePricing(purchasePrice: number, marginPercent: number, discountPercent: number) {
+  calculatePricing(purchasePrice: number, marginPercent: number, discountPercent: number, taxPercent: number = 0) {
     // We treat percentages straightforwardly: marginPercent = 40 means 40% markup
     const marginAmount = (purchasePrice * marginPercent) / 100;
     const sellingPrice = purchasePrice + marginAmount;
     
     const discountAmount = (sellingPrice * discountPercent) / 100;
-    const finalPrice = sellingPrice - discountAmount;
+    const taxableAmount = sellingPrice - discountAmount;
+
+    const taxAmount = (taxableAmount * taxPercent) / 100;
+    const finalPrice = taxableAmount + taxAmount;
     
     // Returning rounded values for safety, or we could leave them as exact decimals
     return {

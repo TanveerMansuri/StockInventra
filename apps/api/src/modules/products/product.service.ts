@@ -36,7 +36,8 @@ export class ProductService {
     const { sellingPrice, finalPrice } = this.pricingService.calculatePricing(
       valid.purchasePrice,
       valid.marginPercent,
-      valid.discountPercent
+      valid.discountPercent,
+      valid.taxPercent
     );
 
     const status = this.pricingService.determineStatus(valid.initialStock, valid.lowStockThreshold);
@@ -62,11 +63,13 @@ export class ProductService {
     const purchasePrice = valid.purchasePrice ?? product.purchasePrice;
     const marginPercent = valid.marginPercent ?? product.marginPercent;
     const discountPercent = valid.discountPercent ?? product.discountPercent;
+    const taxPercent = valid.taxPercent ?? product.taxPercent;
 
     const { sellingPrice, finalPrice } = this.pricingService.calculatePricing(
       purchasePrice,
       marginPercent,
-      discountPercent
+      discountPercent,
+      taxPercent
     );
 
     const lowThreshold = valid.lowStockThreshold ?? product.lowStockThreshold;

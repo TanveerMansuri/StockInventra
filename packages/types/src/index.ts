@@ -37,6 +37,7 @@ export interface Product {
   marginPercent: number;
   sellingPrice: number;
   discountPercent: number;
+  taxPercent: number;
   finalPrice: number;
   initialStock: number;
   currentStock: number;

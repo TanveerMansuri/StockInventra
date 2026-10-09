@@ -33,6 +33,7 @@ export const createProductSchema = z.object({
   purchasePrice: z.number().min(0),
   marginPercent: z.number().min(0),
   discountPercent: z.number().min(0).max(100).default(0),
+  taxPercent: z.number().min(0).max(100).default(0),
   initialStock: z.number().min(0).default(0),
   lowStockThreshold: z.number().min(0).default(10),
   description: z.string().optional(),

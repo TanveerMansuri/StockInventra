@@ -73,6 +73,7 @@ export class PrismaInventoryRepository implements InventoryRepository {
         marginPercent: product.marginPercent.toNumber(),
         sellingPrice: product.sellingPrice.toNumber(),
         discountPercent: product.discountPercent.toNumber(),
+        taxPercent: product.taxPercent.toNumber(),
         finalPrice: product.finalPrice.toNumber(),
         initialStock: product.initialStock,
         currentStock: product.currentStock,

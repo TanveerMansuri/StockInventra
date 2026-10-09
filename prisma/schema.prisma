@@ -63,6 +63,7 @@ model Product {
   marginPercent     Decimal       @db.Decimal(5, 2)
   sellingPrice      Decimal       @db.Decimal(10, 2)
   discountPercent   Decimal       @default(0) @db.Decimal(5, 2)
+  taxPercent        Decimal       @default(0) @db.Decimal(5, 2)
   finalPrice        Decimal       @db.Decimal(10, 2)
   initialStock      Int           @default(0)
   currentStock      Int           @default(0)

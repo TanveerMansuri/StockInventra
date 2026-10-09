@@ -8,8 +8,11 @@ import {
   Tags, 
   BarChart3, 
   Settings,
-  FileBarChart
+  FileBarChart,
+  Box,
+  LogOut
 } from "lucide-react";
+import { useAuth } from "../../features/auth/AuthProvider";
 
 const navigationItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -22,9 +25,19 @@ const navigationItems = [
   { label: "Settings", path: "/settings", icon: Settings },
 ];
 
-import { Box } from "lucide-react";
-
 export function Sidebar() {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    if (window.confirm("Are you sure you want to log out?")) {
+      try {
+        await logout();
+      } catch (error) {
+        console.error("Failed to log out", error);
+      }
+    }
+  };
+
   return (
     <aside className="hidden w-60 flex-col border-r border-border bg-surface md:flex">
       <div className="flex h-[72px] items-center px-[24px] gap-[12px] border-b border-[#EAE5E0] bg-[#FFFFFF]">
@@ -59,17 +72,14 @@ export function Sidebar() {
         })}
       </nav>
       
-      <div className="p-16 mt-auto">
-        <div className="rounded-lg bg-background p-12 text-center shadow-sm border border-border">
-          <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <span className="text-small">👑</span>
-          </div>
-          <h4 className="mb-2 text-body-strong">Upgrade to Pro</h4>
-          <p className="mb-8 text-caption text-text-secondary">Get advanced reports and more.</p>
-          <button className="w-full rounded-md bg-primary py-6 text-caption font-semibold text-surface transition-colors hover:bg-primary-dark">
-            Upgrade
-          </button>
-        </div>
+      <div className="mt-auto px-[24px] pb-[16px]">
+        <button 
+          onClick={handleLogout}
+          className="flex w-full items-center gap-[12px] h-[48px] px-[12px] rounded-[10px] text-[#7A1830] font-semibold text-[15px] hover:bg-[#F5E8EC] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[#7A1830] cursor-pointer"
+        >
+          <LogOut className="h-[20px] w-[20px]" />
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   );
