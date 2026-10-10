@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { PageContainer } from "../../components/layout/PageContainer";
-import { Button, Card, CardHeader, CardTitle, CardContent, Input, Select } from "@stock-inventra/ui";
+import { Button, Card, CardHeader, CardTitle, CardContent, Input } from "@stock-inventra/ui";
 import { useSettings } from "../../hooks/useSettings";
 import { settingsService } from "../../services/api";
 import { useAuth } from "../../features/auth/AuthProvider";
+import { CurrencySelect } from "./CurrencySelect";
 
 export function SettingsPage() {
   const [activeTab, setActiveTab] = useState("business");
-  const { data: settingsData, isLoading } = useSettings();
+  const { data: settingsData, isLoading, refetch } = useSettings();
   const { user } = useAuth();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,16 +17,41 @@ export function SettingsPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [lowStockThreshold, setLowStockThreshold] = useState(20);
-  const [currency, setCurrency] = useState("INR");
+  const [defaultMargin, setDefaultMargin] = useState(40);
+  const [defaultDiscount, setDefaultDiscount] = useState(0);
+  const [currency, setCurrency] = useState("USD");
+  const [taxRate, setTaxRate] = useState(18);
 
   useEffect(() => {
     if (settingsData) {
       setBusinessName(settingsData.business?.businessName || "");
       setEmail(settingsData.business?.email || "");
       setPhone(settingsData.business?.phone || "");
-      setAddress((settingsData as any).address || "");
-      setLowStockThreshold((settingsData as any).defaultLowStockThreshold || 20);
-      setCurrency(settingsData.currency ? (typeof settingsData.currency === 'string' ? settingsData.currency : (settingsData.currency as any).currency || "INR") : "INR");
+      setAddress(settingsData.business?.address || (settingsData as any).address || "");
+      
+      setLowStockThreshold(settingsData.inventory?.lowStockThreshold ?? (settingsData as any).defaultLowStockThreshold ?? 20);
+      setDefaultMargin(settingsData.inventory?.defaultMargin ?? 40);
+      setDefaultDiscount(settingsData.inventory?.defaultDiscount ?? 0);
+      
+      const currObj = settingsData.currency;
+      let rawCurrency = typeof currObj === 'string' ? currObj : currObj?.currency || "INR";
+      
+      const safeRaw = String(rawCurrency);
+      
+      // Normalize to exact dropdown values to ensure it renders correctly
+      let matchedCurrency = "INR";
+      if (safeRaw.includes("USD") || safeRaw.includes("Dollar") || safeRaw === "$") {
+        matchedCurrency = "USD";
+      } else if (safeRaw.includes("EUR") || safeRaw.includes("Euro") || safeRaw === "€") {
+        matchedCurrency = "EUR";
+      } else if (safeRaw.includes("INR") || safeRaw.includes("Rupee") || safeRaw === "₹") {
+        matchedCurrency = "INR";
+      } else if (["INR", "USD", "EUR"].includes(safeRaw)) {
+        matchedCurrency = safeRaw;
+      }
+      
+      setCurrency(matchedCurrency || "USD");
+      setTaxRate(typeof currObj === 'string' ? 18 : currObj?.taxRate ?? 18);
     }
   }, [settingsData]);
 
@@ -41,14 +67,24 @@ export function SettingsPage() {
     setIsSubmitting(true);
     try {
       const res = await settingsService.updateSettings({
-        businessName,
-        email,
-        phone,
-        address,
-        defaultLowStockThreshold: lowStockThreshold,
-        currency
+        business: {
+          businessName,
+          email,
+          phone,
+          address,
+        },
+        inventory: {
+          lowStockThreshold,
+          defaultMargin,
+          defaultDiscount,
+        },
+        currency: {
+          currency,
+          taxRate,
+        }
       });
       if (res.success) {
+        refetch();
         alert("Settings saved successfully!");
       } else {
         alert("Failed to save settings");
@@ -124,8 +160,8 @@ export function SettingsPage() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-24 sm:grid-cols-2">
                   <Input label="Default Low Stock Threshold" type="number" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(Number(e.target.value))} />
-                  <Input label="Default Margin (%) (Readonly Demo)" type="number" value="40" disabled />
-                  <Input label="Default Discount (%) (Readonly Demo)" type="number" value="0" disabled />
+                  <Input label="Default Margin (%)" type="number" value={defaultMargin} onChange={(e) => setDefaultMargin(Number(e.target.value))} />
+                  <Input label="Default Discount (%)" type="number" value={defaultDiscount} onChange={(e) => setDefaultDiscount(Number(e.target.value))} />
                 </CardContent>
               </Card>
             )}
@@ -133,19 +169,21 @@ export function SettingsPage() {
             {activeTab === "currency" && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Currency</CardTitle>
+                  <CardTitle>Regional & Currency</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 gap-24 sm:grid-cols-2">
-                  <Select 
+                  <CurrencySelect 
                     label="Currency" 
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    options={[
-                      { label: "Indian Rupee (INR - ₹)", value: "INR" },
-                      { label: "US Dollar (USD - $)", value: "USD" },
-                      { label: "Euro (EUR - €)", value: "EUR" },
-                    ]} 
+                    value={currency || "USD"}
+                    onChange={(newCurrency) => {
+                      if (newCurrency !== currency) {
+                        if (window.confirm(`Are you sure you want to change the currency to ${newCurrency}? Existing numerical amounts will remain unchanged and their currency display will change. No automatic conversion will be performed.`)) {
+                          setCurrency(newCurrency);
+                        }
+                      }
+                    }} 
                   />
+                  <Input label="Tax Rate (%)" type="number" value={taxRate} onChange={(e) => setTaxRate(Number(e.target.value))} />
                 </CardContent>
               </Card>
             )}

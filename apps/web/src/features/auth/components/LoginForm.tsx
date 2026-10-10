@@ -4,11 +4,12 @@ import { Button, Input } from "@stock-inventra/ui";
 
 interface LoginFormProps {
   onSubmit: (credentials: { email: string; password: string }) => void;
+  onForgotPassword: () => void;
   isLoading: boolean;
   error: string | null;
 }
 
-export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
+export function LoginForm({ onSubmit, onForgotPassword, isLoading, error }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -111,7 +112,7 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
           </div>
 
           {/* Remember / Forgot */}
-          {/* <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
             <label className="flex items-center gap-8 cursor-pointer select-none group">
               <input
                 type="checkbox"
@@ -123,11 +124,12 @@ export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
             </label>
             <button
               type="button"
+              onClick={onForgotPassword}
               className="text-[13px] font-semibold text-[#7A1830] hover:text-[#641326] transition-colors"
             >
               Forgot password?
             </button>
-          </div> */}
+          </div>
 
           {/* Submit */}
           <Button

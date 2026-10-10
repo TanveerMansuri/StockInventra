@@ -6,6 +6,7 @@ import { PageContainer } from "../../components/layout/PageContainer";
 import { Card } from "@stock-inventra/ui";
 import { useProducts } from "../../hooks/useProducts";
 import { useCategories } from "../../hooks/useCategories";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 import { productsService } from "../../services/api";
 import { DeleteProductModal } from "./DeleteProductModal";
 
@@ -18,6 +19,7 @@ export function ProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const formatCurrency = useCurrencyFormatter();
 
   const { data, isLoading, refetch } = useProducts({
     search: debouncedSearch || undefined,
@@ -215,8 +217,8 @@ export function ProductsPage() {
                         </td>
                         <td className="px-[20px] py-[12px] text-[#77706D] text-[13px] hidden sm:table-cell">{product.sku}</td>
                         <td className="px-[20px] py-[12px] text-[#77706D] text-[13px]">{productCategory ? productCategory.name : "Uncategorized"}</td>
-                        <td className="px-[20px] py-[12px] text-[#77706D] text-[13px]">₹{product.purchasePrice.toLocaleString()}</td>
-                        <td className="px-[20px] py-[12px] text-[#242124] font-medium text-[13px]">₹{product.finalPrice.toLocaleString()}</td>
+                        <td className="px-[20px] py-[12px] text-[#77706D] text-[13px]">{formatCurrency(product.purchasePrice)}</td>
+                        <td className="px-[20px] py-[12px] text-[#242124] font-medium text-[13px]">{formatCurrency(product.finalPrice)}</td>
                         <td className="px-[20px] py-[12px]">
                           <span className={`text-[13px] font-medium ${product.currentStock <= product.lowStockThreshold ? 'text-[#D97706]' : 'text-[#059669]'}`}>
                             {product.currentStock.toLocaleString()}

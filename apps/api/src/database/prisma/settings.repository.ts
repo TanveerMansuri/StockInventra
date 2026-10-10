@@ -18,6 +18,7 @@ export class PrismaSettingsRepository implements SettingsRepository {
         defaultDiscount: data.defaultDiscount.toNumber(),
       },
       currency: {
+        country: data.country,
         currency: data.currency,
         taxRate: data.taxRate.toNumber(),
       },
@@ -57,6 +58,7 @@ export class PrismaSettingsRepository implements SettingsRepository {
       updatePayload.defaultDiscount = data.inventory.defaultDiscount;
     }
     if (data.currency) {
+      updatePayload.country = data.currency.country;
       updatePayload.currency = data.currency.currency;
       updatePayload.taxRate = data.currency.taxRate;
     }

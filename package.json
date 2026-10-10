@@ -17,5 +17,8 @@
     "turbo": "latest",
     "typescript": "^5.0.0"
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "dependencies": {
+    "jsdom": "^30.1.2"
+  }
 }

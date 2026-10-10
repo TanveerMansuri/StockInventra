@@ -30,7 +30,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           <select
             id={selectId}
             ref={ref}
-            className={`flex h-10 w-full appearance-none rounded-md border ${error ? 'border-semantic-error' : 'border-border'} bg-surface px-12 py-6 pr-32 text-body text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+            className={`flex h-[52px] w-full appearance-none rounded-[8px] border ${error ? 'border-semantic-error' : 'border-border'} bg-surface px-12 pr-32 text-[16px] text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
             required={required}
             {...props}
           >

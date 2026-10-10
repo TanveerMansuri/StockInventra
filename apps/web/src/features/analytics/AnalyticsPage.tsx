@@ -7,12 +7,15 @@ import { MetricCard } from "../dashboard/components/MetricCard";
 import { SalesChart } from "../dashboard/components/SalesChart";
 import { TopProducts } from "../dashboard/components/TopProducts";
 import { useAnalytics } from "../../hooks/useAnalytics";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
 export function AnalyticsPage() {
   const [period, setPeriod] = useState("thisMonth");
-  const { data, isLoading, error } = useAnalytics({ period });
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const { data, isLoading, error } = useAnalytics({ period, startDate, endDate });
 
-  const formatCurrency = (value: number) => `₹${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatCurrency = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -38,7 +41,16 @@ export function AnalyticsPage() {
     <PageContainer
       title="Analytics"
       description="Get insights into your business performance."
-      action={<DateRangeFilter value={period} onChange={setPeriod} />}
+      action={<DateRangeFilter 
+        value={period} 
+        onChange={setPeriod} 
+        startDate={startDate}
+        endDate={endDate}
+        onCustomDateChange={(s, e) => {
+          setStartDate(s);
+          setEndDate(e);
+        }}
+      />}
     >
       <div className="flex flex-col gap-24">
         {/* Metrics Row */}

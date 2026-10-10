@@ -6,8 +6,7 @@ export class DashboardController {
 
   getDashboard = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const period = req.query.period as string || "thisMonth";
-      const result = await this.service.getDashboardData(period);
+      const result = await this.service.getDashboardData(req.query);
       res.json({ success: true, data: result, message: "Success" });
     } catch (error) {
       next(error);

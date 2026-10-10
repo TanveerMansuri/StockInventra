@@ -4,6 +4,10 @@
  * Supports secure cookie-based authentication via `credentials: 'include'`.
  */
 
+if (!(import.meta as any).env.VITE_API_BASE_URL) {
+  console.error("CRITICAL ERROR: Missing required environment variable VITE_API_BASE_URL. Please check your .env file.");
+}
+
 const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || "/api/v1";
 
 interface FetchOptions extends RequestInit {
@@ -36,17 +40,19 @@ async function request<T>(endpoint: string, options: FetchOptions = {}): Promise
     url += `?${searchParams.toString()}`;
   }
 
+  const isFormData = customConfig.body instanceof FormData;
+
   const config: RequestInit = {
     ...customConfig,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...customConfig.headers,
     },
     // Required for secure cookie authentication
     credentials: "include", 
   };
 
-  if (customConfig.body && typeof customConfig.body === 'object') {
+  if (customConfig.body && !isFormData && typeof customConfig.body === 'object') {
     config.body = JSON.stringify(customConfig.body);
   }
 

@@ -22,7 +22,22 @@ export const changePasswordSchema = z.object({
 
 export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
-  avatar: z.string().url().nullable().optional(),
+  avatar: z.string().refine(val => 
+    val.startsWith('http://') || 
+    val.startsWith('https://') || 
+    val.startsWith('/uploads/'), 
+  "Avatar must be a valid absolute URL or a relative /uploads/ path").nullable().optional(),
+});
+
+
+export const requestPasswordResetSchema = z.object({
+  email: z.string().email(),
+});
+
+export const verifyPasswordResetSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6),
+  newPassword: z.string().min(6),
 });
 
 // Product
@@ -85,6 +100,7 @@ export const updateSettingsSchema = z.object({
     defaultDiscount: z.number().min(0).max(100),
   }).optional(),
   currency: z.object({
+    country: z.string().min(2).optional(),
     currency: z.string().min(2),
     taxRate: z.number().min(0).max(100),
   }).optional(),

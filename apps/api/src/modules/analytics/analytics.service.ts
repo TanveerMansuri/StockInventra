@@ -15,24 +15,30 @@ export class AnalyticsService {
     const products = await this.prodRepo.findMany({});
 
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    let filteredSales = sales;
-    if (period && period !== "all") {
-      filteredSales = sales.filter(sale => {
-        const saleDate = new Date(sale.createdAt);
-        if (period === "today") return saleDate >= startOfToday;
-        if (period === "7days") return saleDate >= new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
-        if (period === "30days") return saleDate >= new Date(startOfToday.getTime() - 30 * 24 * 60 * 60 * 1000);
-        if (period === "thisMonth") return saleDate >= new Date(now.getFullYear(), now.getMonth(), 1);
-        if (period === "lastMonth") {
-          const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-          return saleDate >= startOfLastMonth && saleDate <= endOfLastMonth;
-        }
-        return true;
-      });
+    let start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+
+    if (period === "today") {
+      // Keep default
+    } else if (period === "thisWeek") {
+      const day = start.getDay();
+      const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
+      start = new Date(start.setDate(diff));
+      start.setHours(0,0,0,0);
+    } else if (period === "thisMonth") {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (period === "custom" && query.startDate && query.endDate) {
+      start = new Date(query.startDate);
+      start.setHours(0,0,0,0);
+      end = new Date(query.endDate);
+      end.setHours(0,0,0,0);
+      end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
     }
+
+    const filteredSales = sales.filter(sale => {
+      const saleDate = new Date(sale.createdAt);
+      return saleDate >= start && saleDate < end;
+    });
 
     let totalSales = 0;
     let totalProfit = 0;

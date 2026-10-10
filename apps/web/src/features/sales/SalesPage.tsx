@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useSales } from "../../hooks/useSales";
 import { useProducts } from "../../hooks/useProducts";
 import { salesService } from "../../services/api";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 import { Search, Plus, Calendar, Filter, MoreHorizontal, ChevronLeft, ChevronRight, Receipt, XCircle, ChevronDown } from "lucide-react";
 
 export function SalesPage() {
@@ -91,13 +92,7 @@ export function SalesPage() {
     return 'bg-[#FDE8E7] text-[#B42318]';
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2
-    }).format(amount);
-  };
+  const formatCurrency = useCurrencyFormatter();
 
   const renderPagination = () => {
     const pages = [];

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { useAuth } from "../auth/AuthProvider";
+import { profileService, authService } from "../../services/api";
 import { 
   Camera, 
   UserRound, 
@@ -21,7 +22,8 @@ export function ProfilePage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
-  
+
+
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -40,34 +42,53 @@ export function ProfilePage() {
     }
   }, [user]);
 
-  const handleProfileSave = (e: React.FormEvent) => {
+  const handleProfileSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
-    // Missing Dependency Notice:
-    // The backend endpoints and authService methods (e.g. updateProfile) are not yet implemented.
-    setTimeout(() => {
-      alert("Missing Dependency: The updateProfile API endpoint is not yet implemented in the backend.");
+    try {
+      const res = await profileService.updateProfile({ name }) as any;
+      if (res.success) {
+         (useAuth as any).updateUser?.(res.data) || alert("Profile updated"); // It will use context normally if extracted
+         window.location.reload();
+      }
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to update profile");
+    } finally {
       setIsUpdatingProfile(false);
-    }, 500);
+    }
   };
 
-  const handlePasswordSave = (e: React.FormEvent) => {
+  const handlePasswordSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
     setIsUpdatingPassword(true);
-    // Missing Dependency Notice:
-    setTimeout(() => {
-      alert("Missing Dependency: The changePassword API endpoint is not yet implemented in the backend.");
+    try {
+      await authService.changePassword({ currentPassword, newPassword });
+      alert("Password updated successfully");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to update password");
+    } finally {
       setIsUpdatingPassword(false);
-    }, 500);
+    }
   };
 
-  const handleAvatarUpload = () => {
-    // Missing Dependency Notice:
-    alert("Missing Dependency: The avatar upload flow and API endpoint are not yet implemented.");
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const res = await profileService.uploadAvatar(formData) as any;
+      if (res.success) window.location.reload();
+    } catch (err: any) {
+      alert("Failed to upload avatar");
+    }
   };
 
   // Password Requirements Logic
@@ -92,8 +113,8 @@ export function ProfilePage() {
             <div className="relative">
               {/* Avatar Image / Fallback */}
               <div className="w-[120px] h-[120px] lg:w-[132px] lg:h-[132px] rounded-full border-[4px] border-white shadow-[0_4px_12px_rgba(36,33,36,0.08)] bg-[#F5EFE6] flex items-center justify-center overflow-hidden">
-                {(user as any)?.image ? (
-                  <img src={(user as any).image} alt={user?.name || "User"} className="w-full h-full object-cover" />
+                {user?.avatar ? (
+                  <img src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${user.avatar}`} alt={user?.name || "User"} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-[40px] font-bold text-[#7A1830]">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -102,13 +123,12 @@ export function ProfilePage() {
               </div>
               
               {/* Floating Camera Button */}
-              <button 
-                onClick={handleAvatarUpload}
-                aria-label="Upload new avatar"
-                className="absolute bottom-[2px] right-[2px] w-[36px] h-[36px] lg:w-[40px] lg:h-[40px] bg-[#7A1830] hover:bg-[#641326] transition-colors rounded-full border-[2px] border-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2 z-10 shadow-sm"
+              <label 
+                className="absolute bottom-[2px] right-[2px] w-[36px] h-[36px] lg:w-[40px] lg:h-[40px] bg-[#7A1830] hover:bg-[#641326] transition-colors rounded-full border-[2px] border-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2 z-10 shadow-sm cursor-pointer"
               >
                 <Camera className="text-white w-[16px] h-[16px] lg:w-[18px] lg:h-[18px]" />
-              </button>
+                <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleAvatarUpload} />
+              </label>
             </div>
 
             <h2 className="text-[21px] lg:text-[22px] font-bold text-[#242124] leading-[28px] mt-[12px]">
@@ -163,13 +183,13 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <button 
-            onClick={handleAvatarUpload}
-            className="w-full mt-auto h-[42px] lg:h-[44px] bg-white border-[1.5px] border-[#7A1830] text-[#7A1830] hover:bg-[#F5E9EC] text-[13px] lg:text-[14px] font-semibold rounded-[9px] flex items-center justify-center gap-[8px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2"
+          <label 
+            className="w-full mt-auto h-[42px] lg:h-[44px] bg-white border-[1.5px] border-[#7A1830] text-[#7A1830] hover:bg-[#F5E9EC] text-[13px] lg:text-[14px] font-semibold rounded-[9px] flex items-center justify-center gap-[8px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2 cursor-pointer"
           >
             <Camera className="w-[16px] h-[16px] lg:w-[18px] lg:h-[18px]" />
             Change Avatar
-          </button>
+            <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleAvatarUpload} />
+          </label>
         </div>
 
         {/* Right Column - Forms */}
@@ -217,10 +237,10 @@ export function ProfilePage() {
                     </div>
                     <input 
                       type="email" 
-                      required
+                      readOnly
+                      disabled
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full h-[44px] lg:h-[46px] pl-[36px] lg:pl-[40px] pr-[12px] lg:pr-[14px] border border-[#EAE5E0] rounded-[9px] bg-white text-[14px] lg:text-[15px] text-[#242124] placeholder:text-[#968D88] outline-none focus:border-[#7A1830] focus:ring-1 focus:ring-[#7A1830]"
+                      className="w-full h-[44px] lg:h-[46px] pl-[36px] lg:pl-[40px] pr-[12px] lg:pr-[14px] border border-[#EAE5E0] rounded-[9px] bg-[#F5F5F5] text-[14px] lg:text-[15px] text-[#77706D] outline-none cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -383,6 +403,7 @@ export function ProfilePage() {
 
         </div>
       </div>
+
     </PageContainer>
   );
 }

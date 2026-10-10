@@ -8,3 +8,5 @@ export * from "./dashboard.service";
 export * from "./analytics.service";
 export * from "./settings.service";
 export * from "./reports.service";
+export * from "./profile.service";
+export * from "./notifications.service";

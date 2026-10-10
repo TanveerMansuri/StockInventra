@@ -6,11 +6,14 @@ import { NotFoundError, BusinessRuleError } from "../../utils/errors";
 import { SaleItem } from "@stock-inventra/types";
 import { paginate } from "../../utils/pagination";
 
+import { NotificationService } from "../notifications/notifications.service";
+
 export class SaleService {
   constructor(
     private saleRepo: SaleRepository,
     private inventoryService: InventoryService,
-    private prodRepo: ProductRepository
+    private prodRepo: ProductRepository,
+    private notificationService?: NotificationService
   ) {}
 
   async findMany(query: unknown) {
@@ -96,7 +99,7 @@ export class SaleService {
           tx
         );
       }
-
+      
       return sale;
     });
   }

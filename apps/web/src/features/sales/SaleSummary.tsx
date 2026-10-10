@@ -1,10 +1,12 @@
 import { PendingSaleItem } from "./types";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
 interface SaleSummaryProps {
   saleItems: PendingSaleItem[];
 }
 
 export function SaleSummary({ saleItems }: SaleSummaryProps) {
+  const formatCurrency = useCurrencyFormatter();
   const totalQuantity = saleItems.reduce((sum, item) => sum + item.quantity, 0);
   const billSubtotal = saleItems.reduce((sum, item) => sum + item.subtotal, 0);
   const billDiscount = saleItems.reduce((sum, item) => sum + item.calculatedDiscount, 0);
@@ -38,22 +40,22 @@ export function SaleSummary({ saleItems }: SaleSummaryProps) {
 
           <div className="flex justify-between items-center text-[14px]">
             <span className="text-[#77706D]">Subtotal</span>
-            <span className="text-[#242124] font-semibold">₹{billSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[#242124] font-semibold">{formatCurrency(billSubtotal)}</span>
           </div>
           <div className="flex justify-between items-center text-[14px]">
             <span className="text-[#77706D]">Total Discount</span>
-            <span className="text-[#C62828] font-semibold">- ₹{billDiscount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[#C62828] font-semibold">- {formatCurrency(billDiscount)}</span>
           </div>
           <div className="flex justify-between items-center text-[14px]">
             <span className="text-[#77706D]">Tax (18%)</span>
-            <span className="text-[#242124] font-semibold">₹{billTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[#242124] font-semibold">{formatCurrency(billTax)}</span>
           </div>
           
           <div className="mt-[6px] mb-[2px]">
             <div className="bg-[#F5EFE6] rounded-[8px] px-[16px] py-[12px] flex justify-between items-center">
               <span className="text-[15px] font-bold text-[#7A1830]">Final Sale Amount</span>
               <span className="text-[18px] font-bold text-[#7A1830]">
-                ₹{billFinalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatCurrency(billFinalAmount)}
               </span>
             </div>
           </div>
@@ -62,12 +64,12 @@ export function SaleSummary({ saleItems }: SaleSummaryProps) {
           
           <div className="flex justify-between items-center text-[13px]">
             <span className="text-[#77706D]">Total Cost</span>
-            <span className="text-[#242124] font-semibold">₹{billTotalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[#242124] font-semibold">{formatCurrency(billTotalCost)}</span>
           </div>
           <div className="flex justify-between items-center text-[13px]">
             <span className="text-[#77706D]">Gross Profit</span>
             <span className={`font-semibold ${billGrossProfit >= 0 ? 'text-[#16834A]' : 'text-[#C62828]'}`}>
-              {billGrossProfit >= 0 ? '+' : ''}₹{billGrossProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {billGrossProfit >= 0 ? '+' : ''}{formatCurrency(billGrossProfit)}
             </span>
           </div>
           <div className="flex justify-between items-center text-[13px]">

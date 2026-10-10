@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { dashboardService } from "../services/api";
 
-export function useDashboard(period: string) {
+export function useDashboard(params: any = {}) {
   const [data, setData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -9,7 +9,7 @@ export function useDashboard(period: string) {
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    dashboardService.getDashboardData(period)
+    dashboardService.getDashboardData(params)
       .then((res) => {
         if (res.success) {
           setData(res.data);
@@ -23,7 +23,7 @@ export function useDashboard(period: string) {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [period]);
+  }, [JSON.stringify(params)]);
 
   return { data, isLoading, error };
 }

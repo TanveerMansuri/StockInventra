@@ -3,10 +3,12 @@ import { PageContainer } from "../../components/layout/PageContainer";
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from "@stock-inventra/ui";
 import { Pencil, ArrowLeft } from "lucide-react";
 import { useProduct } from "../../hooks/useProduct";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
 export function ProductDetailPage() {
   const { id } = useParams();
   const { data: product, isLoading, error } = useProduct(id || "");
+  const formatCurrency = useCurrencyFormatter();
 
   if (isLoading) {
     return (
@@ -72,11 +74,11 @@ export function ProductDetailPage() {
                   </div>
                   <div>
                     <p className="text-small text-text-secondary">Purchase Price</p>
-                    <p className="text-body-strong">₹{product.purchasePrice}</p>
+                    <p className="text-body-strong">{formatCurrency(product.purchasePrice)}</p>
                   </div>
                   <div>
                     <p className="text-small text-text-secondary">Selling Price</p>
-                    <p className="text-body-strong">₹{product.finalPrice}</p>
+                    <p className="text-body-strong">{formatCurrency(product.finalPrice)}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-small text-text-secondary">Description</p>
@@ -106,7 +108,7 @@ export function ProductDetailPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-body text-text-secondary">Total Value</span>
-                  <span className="text-body-strong font-semibold">₹{(product.currentStock * product.finalPrice).toLocaleString()}</span>
+                  <span className="text-body-strong font-semibold">{formatCurrency(product.currentStock * product.finalPrice)}</span>
                 </div>
               </div>
             </CardContent>

@@ -122,6 +122,7 @@ export interface AppSettings {
     defaultDiscount: number;
   };
   currency: {
+    country: string;
     currency: string;
     taxRate: number;
   };

@@ -1,5 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { PendingSaleItem } from "./types";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
+import { useSettings } from "../../hooks/useSettings";
 
 interface SaleItemsTableProps {
   items: PendingSaleItem[];
@@ -7,6 +9,10 @@ interface SaleItemsTableProps {
 }
 
 export function SaleItemsTable({ items, onRemoveItem }: SaleItemsTableProps) {
+  const formatCurrency = useCurrencyFormatter();
+  const { data: settings } = useSettings();
+  const currencySymbol = settings?.currency?.currency || 'USD';
+
   return (
     <div className="flex-1 flex flex-col min-h-[150px] overflow-hidden">
       <div className="flex items-center justify-between mb-[8px] flex-shrink-0">
@@ -71,26 +77,26 @@ export function SaleItemsTable({ items, onRemoveItem }: SaleItemsTableProps) {
                       </div>
                     </td>
                     <td className="px-[10px] py-[8px] text-[13px] text-[#242124]">
-                      ₹{item.product.sellingPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatCurrency(item.product.sellingPrice)}
                     </td>
                     <td className="px-[10px] py-[8px]">
                       <div className="flex flex-col">
                         {item.calculatedDiscount > 0 ? (
                           <>
                             <span className="text-[12px] font-medium text-[#C62828] leading-tight">
-                              {item.discountType === 'percentage' ? `${item.discountValue}%` : `₹${item.discountValue}`}
+                              {item.discountType === 'percentage' ? `${item.discountValue}%` : `${currencySymbol}${item.discountValue}`}
                             </span>
-                            <span className="text-[11px] text-[#77706D] leading-tight">₹{item.calculatedDiscount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="text-[11px] text-[#77706D] leading-tight">{formatCurrency(item.calculatedDiscount)}</span>
                           </>
                         ) : (
                           <span className="text-[12px] font-medium text-[#77706D]">
-                            0% <span className="block text-[11px] font-normal">₹0.00</span>
+                            0% <span className="block text-[11px] font-normal">{formatCurrency(0)}</span>
                           </span>
                         )}
                       </div>
                     </td>
                     <td className="px-[10px] py-[8px] text-[13px] font-semibold text-[#242124]">
-                      ₹{item.finalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {formatCurrency(item.finalAmount)}
                     </td>
                     <td className="px-[10px] py-[8px]">
                       <button

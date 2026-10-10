@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Product } from "@stock-inventra/types";
 import { createPortal } from "react-dom";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
 interface ProductSelectionModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export function ProductSelectionModal({
   error,
   categoryName
 }: ProductSelectionModalProps) {
+  const formatCurrency = useCurrencyFormatter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -143,7 +145,7 @@ export function ProductSelectionModal({
                       </div>
                       <div className="flex flex-col items-end gap-[4px]">
                         <span className="text-[15px] font-semibold text-[#242124]">
-                          ₹{p.sellingPrice.toLocaleString()}
+                          {formatCurrency(p.sellingPrice)}
                         </span>
                         {!isOutOfStock ? (
                           <span className={`px-[8px] py-[2px] rounded-full text-[12px] font-medium ${p.currentStock <= p.lowStockThreshold ? 'bg-[#D97706]/10 text-[#D97706]' : 'bg-[#059669]/10 text-[#059669]'}`}>

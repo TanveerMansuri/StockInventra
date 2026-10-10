@@ -2,6 +2,8 @@ import { ChevronDown, Plus, Package } from "lucide-react";
 import { Product, Category } from "@stock-inventra/types";
 import { PendingSaleItem } from "./types";
 import { useState, useEffect } from "react";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
+import { useSettings } from "../../hooks/useSettings";
 
 interface SaleItemEntryProps {
   categories: Category[];
@@ -32,6 +34,10 @@ export function SaleItemEntry({
   const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
   const [discountValue, setDiscountValue] = useState<number>(0);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  const formatCurrency = useCurrencyFormatter();
+  const { data: settings } = useSettings();
+  const currencySymbol = settings?.currency?.currency || 'USD';
 
   useEffect(() => {
     if (error) setLocalError(error);
@@ -175,7 +181,7 @@ export function SaleItemEntry({
         </div>
         <div className="w-[24%]">
           <label className="block text-[13px] font-medium text-[#242124] mb-[5px] truncate">
-            Selling Price (₹)
+            Selling Price ({currencySymbol})
           </label>
           <input 
             type="number"
@@ -213,13 +219,13 @@ export function SaleItemEntry({
               <div className={`w-[16px] h-[16px] rounded-full border-2 flex items-center justify-center transition-colors ${discountType === 'fixed' ? 'border-[#7A1830]' : 'border-[#EAE5E0]'}`}>
                 {discountType === 'fixed' && <div className="w-[8px] h-[8px] rounded-full bg-[#7A1830]" />}
               </div>
-              <span className="text-[13px] font-medium text-[#242124]">₹</span>
+              <span className="text-[13px] font-medium text-[#242124]">{currencySymbol}</span>
             </label>
           </div>
         </div>
         <div className="w-[24%]">
           <label className="block text-[13px] font-medium text-[#242124] mb-[5px] truncate">
-            Discount ({discountType === 'percentage' ? '%' : '₹'})
+            Discount ({discountType === 'percentage' ? '%' : currencySymbol})
           </label>
           <input 
             type="number"
@@ -247,21 +253,21 @@ export function SaleItemEntry({
         <div className="flex items-center gap-[24px]">
           <div className="flex flex-col">
             <span className="text-[16px] font-semibold text-[#242124] leading-tight">
-              ₹{currentSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatCurrency(currentSubtotal)}
             </span>
             <span className="text-[11px] text-[#77706D] mt-[2px]">Subtotal</span>
           </div>
           <div className="w-[1px] h-[32px] bg-[#EAE5E0]" />
           <div className="flex flex-col">
             <span className="text-[16px] font-semibold text-[#C62828] leading-tight">
-              - ₹{currentCalculatedDiscount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              - {formatCurrency(currentCalculatedDiscount)}
             </span>
-            <span className="text-[11px] text-[#77706D] mt-[2px]">Discount ({discountType === 'percentage' ? `${discountValue}%` : `₹Fixed`})</span>
+            <span className="text-[11px] text-[#77706D] mt-[2px]">Discount ({discountType === 'percentage' ? `${discountValue}%` : `${currencySymbol}Fixed`})</span>
           </div>
           <div className="w-[1px] h-[32px] bg-[#EAE5E0]" />
           <div className="flex flex-col">
             <span className="text-[18px] font-bold text-[#7A1830] leading-tight">
-              ₹{currentFinalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatCurrency(currentFinalAmount)}
             </span>
             <span className="text-[11px] text-[#77706D] mt-[2px]">Final Price</span>
           </div>

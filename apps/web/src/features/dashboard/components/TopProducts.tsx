@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@stock-inventra/ui";
 import { Package } from "lucide-react";
+import { useCurrencyFormatter } from "../../../hooks/useCurrencyFormatter";
 
 interface TopProductProps {
   id: string;
@@ -11,6 +12,7 @@ interface TopProductProps {
 }
 
 export function TopProducts({ products = [] }: { products?: TopProductProps[] }) {
+  const formatCurrency = useCurrencyFormatter();
   return (
     <Card className="flex h-full flex-col">
       <CardHeader>
@@ -37,7 +39,7 @@ export function TopProducts({ products = [] }: { products?: TopProductProps[] })
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-body-strong font-semibold">₹{product.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-body-strong font-semibold">{formatCurrency(product.revenue)}</p>
                   {product.unitsSold !== undefined && <p className="text-small text-text-secondary">{product.unitsSold} units</p>}
                 </div>
               </div>

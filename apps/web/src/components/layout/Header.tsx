@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Calendar, Bell, X, UserCircle } from "lucide-react";
+import { Search, Calendar, X, UserCircle } from "lucide-react";
 import { useAuth } from "../../features/auth/AuthProvider";
 import { productsService } from "../../services/api";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
+import { NotificationsDropdown } from "./NotificationsDropdown";
 
 export function Header() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const formatCurrency = useCurrencyFormatter();
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
@@ -103,7 +106,7 @@ export function Header() {
                   }}
                 >
                   <div className="text-[14px] font-medium text-[#242124] truncate">{product.name}</div>
-                  <div className="text-[12px] text-[#77706D] mt-1">{product.category?.name || "Product"} • ₹{product.price}</div>
+                  <div className="text-[12px] text-[#77706D] mt-1">{product.category?.name || "Product"} • {formatCurrency(product.price)}</div>
                 </div>
               ))
             ) : (
@@ -119,13 +122,15 @@ export function Header() {
           <span>{formattedDate}</span>
         </div>
         
-        <button className="flex h-[40px] w-[40px] items-center justify-center rounded-[8px] border border-[#EAE5E0] text-[#77706D] transition-colors hover:bg-[#FAF5EE] hover:text-[#242124]">
-          <Bell className="h-[20px] w-[20px]" strokeWidth={2} />
-        </button>
+        <NotificationsDropdown />
         
         <Link to="/profile" className="flex items-center gap-[12px] cursor-pointer hover:opacity-80 transition-opacity">
           <div className="h-[36px] w-[36px] rounded-full overflow-hidden bg-[#FEF7F0] flex items-center justify-center border border-[#EAE5E0]">
-            <UserCircle className="h-[24px] w-[24px] text-[#781529]" strokeWidth={1.5} />
+            {user?.avatar ? (
+              <img src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${user.avatar}`} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              <UserCircle className="h-[24px] w-[24px] text-[#781529]" strokeWidth={1.5} />
+            )}
           </div>
           <div className="hidden flex-col items-start sm:flex">
             <span className="text-[14px] font-medium text-[#242124] leading-tight">{user?.name || "Tanveer Mansuri"}</span>

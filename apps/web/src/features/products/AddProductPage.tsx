@@ -4,6 +4,8 @@ import { PageContainer } from "../../components/layout/PageContainer";
 import { Input, Select, Textarea } from "@stock-inventra/ui";
 import { productsService, categoriesService } from "../../services/api";
 import { Category } from "@stock-inventra/types";
+import { useSettings } from "../../hooks/useSettings";
+import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
 export function AddProductPage() {
   const { id } = useParams();
@@ -14,6 +16,9 @@ export function AddProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(isEditMode);
   const [error, setError] = useState<string | null>(null);
+  const { data: settings } = useSettings();
+  const formatCurrency = useCurrencyFormatter();
+  const currencySymbol = settings?.currency?.currency || 'USD';
 
   // Form State
   const [name, setName] = useState("");
@@ -44,6 +49,13 @@ export function AddProductPage() {
         }
       }
     }).catch(console.error);
+
+    if (!isEditMode && settings) {
+      setMargin(prev => prev === 0 ? (settings.inventory?.defaultMargin ?? 0) : prev);
+      setDiscount(prev => prev === 0 ? (settings.inventory?.defaultDiscount ?? 0) : prev);
+      setTax(prev => prev === 0 ? ((settings.currency as any)?.taxRate ?? 0) : prev);
+      setLowStockThreshold(prev => prev === 10 ? (settings.inventory?.lowStockThreshold ?? 10) : prev);
+    }
     
     if (isEditMode) {
       productsService.getProduct(id!).then(res => {
@@ -159,7 +171,7 @@ export function AddProductPage() {
               </div>
               <div className="col-span-12 sm:col-span-6">
                 <Input 
-                  label="Purchase Price (₹)" 
+                  label={`Purchase Price (${currencySymbol})`}
                   type="number" 
                   value={purchasePrice || ''}
                   onChange={(e) => setPurchasePrice(Number(e.target.value))}
@@ -182,7 +194,7 @@ export function AddProductPage() {
               </div>
               <div className="col-span-12 sm:col-span-6">
                 <Input 
-                  label="Selling Price Preview (₹)" 
+                  label={`Selling Price Preview (${currencySymbol})`}
                   type="number" 
                   value={sellingPrice}
                   disabled 
@@ -258,35 +270,35 @@ export function AddProductPage() {
             <div className="flex flex-col gap-[14px]">
               <div className="flex justify-between items-center text-[14px]">
                 <span className="text-[#77706D]">Purchase Price</span>
-                <span className="text-[#242124] font-medium">₹{purchasePrice.toFixed(2)}</span>
+                <span className="text-[#242124] font-medium">{formatCurrency(purchasePrice)}</span>
               </div>
               <div className="flex justify-between items-center text-[14px]">
                 <span className="text-[#77706D]">Margin ({margin}%)</span>
-                <span className="text-[#242124] font-medium">₹{marginAmount.toFixed(2)}</span>
+                <span className="text-[#242124] font-medium">{formatCurrency(marginAmount)}</span>
               </div>
               
               <div className="h-[1px] bg-[#EAE5E0] my-[4px]" />
               
               <div className="flex justify-between items-center text-[15px] font-semibold">
                 <span className="text-[#242124]">Selling Price</span>
-                <span className="text-[#242124]">₹{sellingPrice.toFixed(2)}</span>
+                <span className="text-[#242124]">{formatCurrency(sellingPrice)}</span>
               </div>
               
               <div className="flex justify-between items-center text-[14px] mt-[4px]">
                 <span className="text-[#77706D]">Discount ({discount}%)</span>
-                <span className="text-[#242124] font-medium">₹{discountAmount.toFixed(2)}</span>
+                <span className="text-[#242124] font-medium">{formatCurrency(discountAmount)}</span>
               </div>
 
               <div className="flex justify-between items-center text-[14px]">
                 <span className="text-[#77706D]">Tax ({tax}%)</span>
-                <span className="text-[#242124] font-medium">₹{taxAmount.toFixed(2)}</span>
+                <span className="text-[#242124] font-medium">{formatCurrency(taxAmount)}</span>
               </div>
               
               <div className="h-[1px] bg-[#EAE5E0] my-[4px]" />
               
               <div className="flex justify-between items-center text-[16px] font-bold text-[#781529]">
                 <span>Final Sale Price</span>
-                <span>₹{finalPrice.toFixed(2)}</span>
+                <span>{formatCurrency(finalPrice)}</span>
               </div>
             </div>
           </div>

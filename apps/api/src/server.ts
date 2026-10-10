@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { config } from './config/env';
@@ -13,6 +14,7 @@ import { PrismaCategoryRepository } from './database/prisma/category.repository'
 import { PrismaInventoryRepository, PrismaStockMovementRepository } from './database/prisma/inventory.repository';
 import { PrismaSaleRepository } from './database/prisma/sale.repository';
 import { PrismaSettingsRepository } from './database/prisma/settings.repository';
+import { NotificationRepository } from './modules/notifications/notifications.repository';
 
 // Services
 import { AuthService } from './modules/auth/auth.service';
@@ -25,7 +27,9 @@ import { SaleService } from './modules/sales/sale.service';
 import { DashboardService } from './modules/dashboard/dashboard.service';
 import { AnalyticsService } from './modules/analytics/analytics.service';
 import { AnalyticsStockRecommendationService } from './modules/analytics/recommendation.service';
+import { ReportsService } from './modules/reports/reports.service';
 import { SettingsService } from './modules/settings/settings.service';
+import { NotificationService } from './modules/notifications/notifications.service';
 
 // Controllers & Routers
 import { AuthController } from './modules/auth/auth.controller';
@@ -40,6 +44,8 @@ import { DashboardController, createDashboardRouter } from './modules/dashboard/
 import { AnalyticsController, createAnalyticsRouter } from './modules/analytics/analytics.controller';
 import { ReportsController, createReportsRouter } from './modules/reports/reports.controller';
 import { SettingsController, createSettingsRouter } from './modules/settings/settings.controller';
+import { NotificationController } from './modules/notifications/notifications.controller';
+import { createNotificationRouter } from './modules/notifications/notifications.routes';
 
 // 1. Instantiate Prisma Repositories
 const userRepo = new PrismaUserRepository();
@@ -50,6 +56,7 @@ const inventoryRepo = new PrismaInventoryRepository();
 const movementRepo = new PrismaStockMovementRepository();
 const saleRepo = new PrismaSaleRepository();
 const settingsRepo = new PrismaSettingsRepository();
+const notificationRepo = new NotificationRepository();
 
 // 2. Instantiate Services
 const authService = new AuthService(userRepo, sessionRepo);
@@ -62,7 +69,9 @@ const saleService = new SaleService(saleRepo, inventoryService, productRepo);
 const dashboardService = new DashboardService(saleRepo, productRepo);
 const analyticsRecService = new AnalyticsStockRecommendationService();
 const analyticsService = new AnalyticsService(saleRepo, productRepo, analyticsRecService);
+const reportsService = new ReportsService(saleRepo, productRepo, inventoryRepo, movementRepo);
 const settingsService = new SettingsService(settingsRepo);
+const notificationService = new NotificationService(notificationRepo);
 
 // 3. Instantiate Controllers
 const authController = new AuthController(authService);
@@ -73,8 +82,9 @@ const inventoryController = new InventoryController(inventoryService);
 const saleController = new SaleController(saleService);
 const dashboardController = new DashboardController(dashboardService);
 const analyticsController = new AnalyticsController(analyticsService);
-const reportsController = new ReportsController();
+const reportsController = new ReportsController(reportsService);
 const settingsController = new SettingsController(settingsService);
+const notificationController = new NotificationController(notificationService);
 
 // 4. Setup Express
 const app = express();
@@ -85,6 +95,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser(config.cookieSecret));
+
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
 
 const requireAuth = createAuthMiddleware(sessionRepo, userRepo);
 
@@ -103,6 +115,7 @@ app.use('/api/v1/dashboard', createDashboardRouter(dashboardController, requireA
 app.use('/api/v1/analytics', createAnalyticsRouter(analyticsController, requireAuth));
 app.use('/api/v1/reports', createReportsRouter(reportsController, requireAuth));
 app.use('/api/v1/settings', createSettingsRouter(settingsController, requireAuth));
+app.use('/api/v1/notifications', createNotificationRouter(notificationController, requireAuth));
 
 // Global Error Handler
 app.use(errorHandler);
