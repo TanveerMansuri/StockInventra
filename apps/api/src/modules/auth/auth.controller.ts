@@ -53,21 +53,4 @@ export class AuthController {
       next(error);
     }
   };
-  forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.authService.forgotPassword(req.body);
-      res.json({ success: true, data: null, message: "If the email is registered, a reset code was sent." });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await this.authService.resetPassword(req.body);
-      res.json({ success: true, data: null, message: "Password reset successfully." });
-    } catch (error) {
-      next(error);
-    }
-  };
 }

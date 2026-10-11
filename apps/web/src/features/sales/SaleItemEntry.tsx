@@ -4,6 +4,7 @@ import { PendingSaleItem } from "./types";
 import { useState, useEffect } from "react";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 import { useSettings } from "../../hooks/useSettings";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 
 interface SaleItemEntryProps {
   categories: Category[];
@@ -136,13 +137,7 @@ export function SaleItemEntry({
           >
             {product ? (
               <div className="flex items-center gap-[6px] truncate">
-                {product.image ? (
-                  <img src={product.image} className="w-[20px] h-[20px] rounded-[4px] object-cover shrink-0" />
-                ) : (
-                  <div className="w-[20px] h-[20px] rounded-[4px] bg-[#F5EFE6] flex items-center justify-center text-[11px] font-bold text-[#7A1830] shrink-0">
-                    {product.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
+                <ProductAvatar name={product.name} image={product.image} size="xs" />
                 <div className="flex flex-col truncate">
                   <span className="text-[13px] text-[#242124] truncate leading-tight font-medium">{product.name}</span>
                   <span className="text-[11px] text-[#77706D] truncate leading-tight">SKU: {product.sku} | Stock: {product.currentStock} units</span>

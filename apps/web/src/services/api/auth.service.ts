@@ -13,10 +13,4 @@ export const authService = {
 
   changePassword: (data: any) =>
     apiClient.post<any>("/auth/change-password", data),
-
-  forgotPassword: (data: any) =>
-    apiClient.post<any>("/auth/forgot-password", data),
-
-  resetPassword: (data: any) =>
-    apiClient.post<any>("/auth/reset-password", data),
 };

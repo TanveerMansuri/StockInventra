@@ -60,7 +60,7 @@ export function DashboardPage() {
             icon={IndianRupee}
             trend={data.revenueTrend}
             direction={data.revenueTrend >= 0 ? "up" : "down"}
-            comparison={`from last month`}
+            comparison={data.comparisonLabel || "from last month"}
             iconBgColor="bg-[#781529]/10"
             iconColor="text-[#781529]"
           />
@@ -70,7 +70,7 @@ export function DashboardPage() {
             icon={TrendingUp}
             trend={data.profitTrend}
             direction={data.profitTrend >= 0 ? "up" : "down"}
-            comparison={`from last month`}
+            comparison={data.comparisonLabel || "from last month"}
             iconBgColor="bg-[#D97706]/10"
             iconColor="text-[#D97706]"
           />

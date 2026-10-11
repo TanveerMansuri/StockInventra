@@ -114,7 +114,11 @@ export function ProfilePage() {
               {/* Avatar Image / Fallback */}
               <div className="w-[120px] h-[120px] lg:w-[132px] lg:h-[132px] rounded-full border-[4px] border-white shadow-[0_4px_12px_rgba(36,33,36,0.08)] bg-[#F5EFE6] flex items-center justify-center overflow-hidden">
                 {user?.avatar ? (
-                  <img src={user.avatar.startsWith('http') ? user.avatar : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${user.avatar}`} alt={user?.name || "User"} className="w-full h-full object-cover" />
+                  <img 
+                    src={user.avatar.startsWith('http') ? user.avatar : `${(import.meta.env.VITE_API_BASE_URL ? new URL(import.meta.env.VITE_API_BASE_URL).origin : 'http://localhost:4000')}${user.avatar}`} 
+                    alt={user?.name || "User"} 
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <span className="text-[40px] font-bold text-[#7A1830]">
                     {user?.name?.charAt(0)?.toUpperCase() || 'U'}

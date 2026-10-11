@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Button, Card, CardHeader, CardTitle, CardContent, Badge } from "@stock-inventra/ui";
 import { Pencil, ArrowLeft } from "lucide-react";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 import { useProduct } from "../../hooks/useProduct";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
@@ -58,9 +59,7 @@ export function ProductDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-start gap-24">
-                <div className="flex h-96 w-96 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-4xl">
-                  {product.name.charAt(0)}
-                </div>
+                <ProductAvatar name={product.name} image={product.image} size="xl" />
                 <div className="grid flex-1 grid-cols-2 gap-y-16">
                   <div>
                     <p className="text-small text-text-secondary">Category</p>

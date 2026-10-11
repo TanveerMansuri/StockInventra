@@ -3,6 +3,7 @@ import { PageContainer } from "../../components/layout/PageContainer";
 import { useInventory } from "../../hooks/useInventory";
 import { useCategories } from "../../hooks/useCategories";
 import { Search, ChevronDown } from "lucide-react";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 
 export function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,13 +127,7 @@ export function InventoryPage() {
                   <tr key={item.product.id} className="border-b border-[#EAE5E0] last:border-0 hover:bg-[#FDFCF9] transition-colors">
                     <td className="px-[20px] py-[12px]">
                       <div className="flex items-center gap-[12px]">
-                        {item.product.image ? (
-                          <img src={item.product.image} className="w-[36px] h-[36px] rounded-[6px] object-cover border border-[#EAE5E0]" />
-                        ) : (
-                          <div className="w-[36px] h-[36px] rounded-[6px] bg-[#F5EFE6] flex items-center justify-center text-[14px] font-bold text-[#7A1830]">
-                            {item.product.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <ProductAvatar name={item.product.name} image={item.product.image} size="md" />
                         <div className="flex flex-col">
                           <span className="text-[14px] font-medium text-[#242124]">{item.product.name}</span>
                           <span className="text-[12px] text-[#77706D]">{item.product.sku}</span>

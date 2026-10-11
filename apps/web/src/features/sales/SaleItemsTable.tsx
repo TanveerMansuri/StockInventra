@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { PendingSaleItem } from "./types";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 import { useSettings } from "../../hooks/useSettings";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 
 interface SaleItemsTableProps {
   items: PendingSaleItem[];
@@ -56,13 +57,7 @@ export function SaleItemsTable({ items, onRemoveItem }: SaleItemsTableProps) {
                     <td className="px-[10px] py-[8px]">
                       <div className="flex items-center gap-[8px]">
                         <input type="checkbox" className="rounded-[4px] border-[#EAE5E0] text-[#7A1830] focus:ring-[#7A1830]" readOnly checked />
-                        {item.product.image ? (
-                          <img src={item.product.image} className="w-[28px] h-[28px] rounded-[4px] object-cover shrink-0 border border-[#EAE5E0]" />
-                        ) : (
-                          <div className="w-[28px] h-[28px] rounded-[4px] bg-[#F5EFE6] flex items-center justify-center text-[12px] font-bold text-[#7A1830] shrink-0 border border-[#EAE5E0]">
-                            {item.product.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <ProductAvatar name={item.product.name} image={item.product.image} size="sm" />
                         <div className="flex flex-col">
                           <span className="text-[13px] font-medium text-[#242124] line-clamp-1 leading-tight">{item.product.name}</span>
                           <span className="text-[11px] text-[#77706D] leading-tight">SKU: {item.product.sku}</span>

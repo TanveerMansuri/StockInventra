@@ -4,12 +4,11 @@ import { Button, Input } from "@stock-inventra/ui";
 
 interface LoginFormProps {
   onSubmit: (credentials: { email: string; password: string }) => void;
-  onForgotPassword: () => void;
   isLoading: boolean;
   error: string | null;
 }
 
-export function LoginForm({ onSubmit, onForgotPassword, isLoading, error }: LoginFormProps) {
+export function LoginForm({ onSubmit, isLoading, error }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -111,8 +110,8 @@ export function LoginForm({ onSubmit, onForgotPassword, isLoading, error }: Logi
             </div>
           </div>
 
-          {/* Remember / Forgot */}
-          <div className="flex items-center justify-between">
+          {/* Remember Me */}
+          <div className="flex items-center">
             <label className="flex items-center gap-8 cursor-pointer select-none group">
               <input
                 type="checkbox"
@@ -122,13 +121,6 @@ export function LoginForm({ onSubmit, onForgotPassword, isLoading, error }: Logi
                 Remember me
               </span>
             </label>
-            <button
-              type="button"
-              onClick={onForgotPassword}
-              className="text-[13px] font-semibold text-[#7A1830] hover:text-[#641326] transition-colors"
-            >
-              Forgot password?
-            </button>
           </div>
 
           {/* Submit */}

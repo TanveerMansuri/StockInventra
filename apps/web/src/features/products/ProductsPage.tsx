@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Plus, Search, Trash2, Edit, ChevronDown, MoreHorizontal } from "lucide-react";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Card } from "@stock-inventra/ui";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 import { useProducts } from "../../hooks/useProducts";
 import { useCategories } from "../../hooks/useCategories";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
@@ -202,13 +203,7 @@ export function ProductsPage() {
                       <tr key={product.id} className="transition-colors hover:bg-[#FDFCF9] group">
                         <td className="px-[20px] py-[12px] h-[64px]">
                           <div className="flex items-center gap-[12px]">
-                            {product.image ? (
-                              <img src={product.image} alt={product.name} className="h-[36px] w-[36px] rounded-[6px] object-cover border border-[#EAE5E0]" />
-                            ) : (
-                              <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[6px] bg-[#F5EFE6] font-semibold text-[#781529] text-[14px]">
-                                {product.name.charAt(0).toUpperCase()}
-                              </div>
-                            )}
+                            <ProductAvatar name={product.name} image={product.image} size="md" />
                             <div className="flex flex-col">
                               <span className="font-medium text-[#242124] text-[14px] leading-tight">{product.name}</span>
                               <span className="text-[12px] text-[#77706D] mt-[2px] sm:hidden block">{product.sku}</span>

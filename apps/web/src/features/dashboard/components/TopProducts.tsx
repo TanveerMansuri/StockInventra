@@ -2,6 +2,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@stock-inventra/ui";
 import { Package } from "lucide-react";
 import { useCurrencyFormatter } from "../../../hooks/useCurrencyFormatter";
 
+import { ProductAvatar } from "../../../components/common/ProductAvatar";
+
 interface TopProductProps {
   id: string;
   name: string;
@@ -30,15 +32,13 @@ export function TopProducts({ products = [] }: { products?: TopProductProps[] })
             products.map((product) => (
               <div key={product.id} className="flex items-center justify-between border-b border-border pb-12 last:border-0 last:pb-0">
                 <div className="flex items-center gap-12">
-                  <div className="flex h-48 w-48 items-center justify-center rounded-md bg-background text-2xl">
-                    {product.image || product.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-body-strong">{product.name}</p>
-                    <p className="text-small text-text-secondary">{product.category || "General"}</p>
+                  <ProductAvatar name={product.name} image={product.image} size="md" />
+                  <div className="min-w-0">
+                    <p className="text-body-strong truncate">{product.name}</p>
+                    <p className="text-small text-text-secondary truncate">{product.category || "General"}</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right shrink-0 ml-3">
                   <p className="text-body-strong font-semibold">{formatCurrency(product.revenue)}</p>
                   {product.unitsSold !== undefined && <p className="text-small text-text-secondary">{product.unitsSold} units</p>}
                 </div>

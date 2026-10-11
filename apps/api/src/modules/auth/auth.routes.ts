@@ -12,8 +12,6 @@ export function createAuthRouter(
   router.post("/logout", authController.logout);
   router.get("/me", requireAuth, authController.me);
   router.post("/change-password", requireAuth, authController.changePassword);
-  router.post("/forgot-password", authController.forgotPassword);
-  router.post("/reset-password", authController.resetPassword);
 
   return router;
 }

@@ -16,6 +16,7 @@ export function DateRangeFilter({ value, onChange, startDate, endDate, onCustomD
           { id: "today", label: "Today" },
           { id: "thisWeek", label: "This Week" },
           { id: "thisMonth", label: "This Month" },
+          { id: "thisYear", label: "This Year" },
           { id: "custom", label: "Custom Range" },
         ].map((opt) => {
           const isActive = value === opt.id;

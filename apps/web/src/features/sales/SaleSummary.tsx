@@ -1,5 +1,6 @@
 import { PendingSaleItem } from "./types";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 
 interface SaleSummaryProps {
   saleItems: PendingSaleItem[];
@@ -88,13 +89,7 @@ export function SaleSummary({ saleItems }: SaleSummaryProps) {
               {recentItems.map(item => (
                 <div key={`recent-${item.id}`} className="flex items-center justify-between">
                   <div className="flex items-center gap-[8px]">
-                    {item.product.image ? (
-                      <img src={item.product.image} className="w-[30px] h-[30px] rounded-[4px] object-cover shrink-0 border border-[#EAE5E0]" />
-                    ) : (
-                      <div className="w-[30px] h-[30px] rounded-[4px] bg-[#FCFCFB] border border-[#EAE5E0] flex items-center justify-center text-[12px] font-bold text-[#7A1830] shrink-0">
-                        {item.product.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <ProductAvatar name={item.product.name} image={item.product.image} size="sm" />
                     <span className="text-[12px] font-medium text-[#242124] line-clamp-1">{item.product.name}</span>
                   </div>
                   <span className="text-[12px] text-[#77706D] whitespace-nowrap">Qty: {item.quantity}</span>

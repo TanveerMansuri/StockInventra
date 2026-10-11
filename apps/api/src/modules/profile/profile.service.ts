@@ -1,8 +1,6 @@
 import { UserRepository } from "../auth/auth.repository";
 import { updateProfileSchema } from "@stock-inventra/validation";
 import { UserProfile } from "@stock-inventra/types";
-import { OTPService } from "../auth/otp.service";
-import { ConflictError, UnauthorizedError } from "../../utils/errors";
 
 export class ProfileService {
   constructor(private userRepo: UserRepository) {}

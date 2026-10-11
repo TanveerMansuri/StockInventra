@@ -1,7 +1,21 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 
-dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
+// Try multiple potential paths to locate the root .env file reliably in dev, ts-node, and compiled dist
+const potentialEnvPaths = [
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(__dirname, "../../../../.env"),
+  path.resolve(__dirname, "../../../.env"),
+  path.resolve(__dirname, "../../.env"),
+];
+
+for (const envPath of potentialEnvPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    break;
+  }
+}
 
 const requiredEnvVars = ["DATABASE_URL"];
 
@@ -17,13 +31,4 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || "",
   cookieSecret: process.env.COOKIE_SECRET || "super-secret-cookie-key",
   frontendUrl: process.env.FRONTEND_URL || "http://localhost:5173",
-  smtp: {
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT || "587", 10),
-    secure: process.env.SMTP_SECURE === "true",
-    user: process.env.SMTP_USER || "mtapplicationdeveloper@gmail.com",
-    pass: process.env.SMTP_PASS || "fmra vryy qoxr kdps",
-    fromEmail: process.env.SMTP_FROM_EMAIL || "mtapplicationdeveloper@gmail.com",
-    fromName: process.env.SMTP_FROM_NAME || "Stock Inventra",
-  }
 };

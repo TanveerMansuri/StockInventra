@@ -3,6 +3,7 @@ import { Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Product } from "@stock-inventra/types";
 import { createPortal } from "react-dom";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
+import { ProductAvatar } from "../../components/common/ProductAvatar";
 
 interface ProductSelectionModalProps {
   isOpen: boolean;
@@ -126,13 +127,7 @@ export function ProductSelectionModal({
                       `}
                     >
                       <div className="flex items-center gap-[16px]">
-                        {p.image ? (
-                          <img src={p.image} className="w-[44px] h-[44px] rounded-[6px] object-cover border border-[#EAE5E0]" />
-                        ) : (
-                          <div className="w-[44px] h-[44px] rounded-[6px] bg-[#FCFCFB] border border-[#EAE5E0] flex items-center justify-center text-[16px] font-bold text-[#7A1830]">
-                            {p.name.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+                        <ProductAvatar name={p.name} image={p.image} size="lg" />
                         <div className="flex flex-col">
                           <span className={`text-[15px] font-medium ${isSelected ? 'text-[#7A1830]' : 'text-[#242124]'}`}>
                             {p.name}

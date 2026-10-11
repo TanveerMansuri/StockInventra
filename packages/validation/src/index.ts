@@ -29,17 +29,6 @@ export const updateProfileSchema = z.object({
   "Avatar must be a valid absolute URL or a relative /uploads/ path").nullable().optional(),
 });
 
-
-export const requestPasswordResetSchema = z.object({
-  email: z.string().email(),
-});
-
-export const verifyPasswordResetSchema = z.object({
-  email: z.string().email(),
-  otp: z.string().length(6),
-  newPassword: z.string().min(6),
-});
-
 // Product
 export const createProductSchema = z.object({
   name: z.string().min(2),
