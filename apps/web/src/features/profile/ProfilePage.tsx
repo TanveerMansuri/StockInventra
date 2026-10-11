@@ -2,22 +2,22 @@ import { useState, useEffect } from "react";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { useAuth } from "../auth/AuthProvider";
 import { profileService, authService } from "../../services/api";
-import { 
-  Camera, 
-  UserRound, 
-  Mail, 
-  CalendarDays, 
-  ShieldCheck, 
-  LockKeyhole, 
-  Eye, 
-  EyeOff, 
-  CheckCircle2, 
-  Circle 
+import {
+  Camera,
+  UserRound,
+  Mail,
+  CalendarDays,
+  ShieldCheck,
+  LockKeyhole,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Circle
 } from "lucide-react";
 
 export function ProfilePage() {
   const { user } = useAuth();
-  
+
   // Personal Info State
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,7 +29,7 @@ export function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  
+
   // Visibility Toggles
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -48,8 +48,8 @@ export function ProfilePage() {
     try {
       const res = await profileService.updateProfile({ name }) as any;
       if (res.success) {
-         (useAuth as any).updateUser?.(res.data) || alert("Profile updated"); // It will use context normally if extracted
-         window.location.reload();
+        (useAuth as any).updateUser?.(res.data) || alert("Profile updated"); // It will use context normally if extracted
+        window.location.reload();
       }
     } catch (err: any) {
       alert(err?.response?.data?.message || "Failed to update profile");
@@ -104,20 +104,20 @@ export function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-[16px] lg:gap-[20px] lg:grid-cols-[minmax(300px,0.8fr)_minmax(0,1.7fr)] items-stretch">
-        
+
         {/* Left Column - Profile Summary */}
         <div className="bg-[#FFFFFF] border border-[#EAE5E0] rounded-[12px] p-[18px] lg:p-[20px] shadow-[0_2px_8px_rgba(36,33,36,0.04)] flex flex-col w-full h-full">
-          
+
           {/* Avatar Section */}
           <div className="flex flex-col items-center">
             <div className="relative">
               {/* Avatar Image / Fallback */}
               <div className="w-[120px] h-[120px] lg:w-[132px] lg:h-[132px] rounded-full border-[4px] border-white shadow-[0_4px_12px_rgba(36,33,36,0.08)] bg-[#F5EFE6] flex items-center justify-center overflow-hidden">
                 {user?.avatar ? (
-                  <img 
-                    src={user.avatar.startsWith('http') ? user.avatar : `${(import.meta.env.VITE_API_BASE_URL ? new URL(import.meta.env.VITE_API_BASE_URL).origin : 'http://localhost:4000')}${user.avatar}`} 
-                    alt={user?.name || "User"} 
-                    className="w-full h-full object-cover" 
+                  <img
+                    src={user.avatar.startsWith('http') ? user.avatar : `${(import.meta.env.VITE_API_BASE_URL ? new URL(import.meta.env.VITE_API_BASE_URL).origin : 'http://localhost:4000')}${user.avatar}`}
+                    alt={user?.name || "User"}
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <span className="text-[40px] font-bold text-[#7A1830]">
@@ -125,9 +125,9 @@ export function ProfilePage() {
                   </span>
                 )}
               </div>
-              
+
               {/* Floating Camera Button */}
-              <label 
+              <label
                 className="absolute bottom-[2px] right-[2px] w-[36px] h-[36px] lg:w-[40px] lg:h-[40px] bg-[#7A1830] hover:bg-[#641326] transition-colors rounded-full border-[2px] border-white flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2 z-10 shadow-sm cursor-pointer"
               >
                 <Camera className="text-white w-[16px] h-[16px] lg:w-[18px] lg:h-[18px]" />
@@ -187,7 +187,7 @@ export function ProfilePage() {
             </div>
           </div>
 
-          <label 
+          <label
             className="w-full mt-auto h-[42px] lg:h-[44px] bg-white border-[1.5px] border-[#7A1830] text-[#7A1830] hover:bg-[#F5E9EC] text-[13px] lg:text-[14px] font-semibold rounded-[9px] flex items-center justify-center gap-[8px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2 cursor-pointer"
           >
             <Camera className="w-[16px] h-[16px] lg:w-[18px] lg:h-[18px]" />
@@ -198,7 +198,7 @@ export function ProfilePage() {
 
         {/* Right Column - Forms */}
         <div className="flex flex-col gap-[14px] lg:gap-[16px] w-full min-w-0 h-full justify-between">
-          
+
           {/* Personal Information Card */}
           <div className="bg-[#FFFFFF] border border-[#EAE5E0] rounded-[12px] p-[18px] lg:p-[20px] shadow-[0_2px_8px_rgba(36,33,36,0.04)] h-full flex flex-col">
             <div className="flex items-center gap-[12px] mb-[12px]">
@@ -221,8 +221,8 @@ export function ProfilePage() {
                     <div className="absolute inset-y-0 left-0 pl-[12px] lg:pl-[14px] flex items-center pointer-events-none">
                       <UserRound className="w-[16px] h-[16px] text-[#968D88]" />
                     </div>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -239,8 +239,8 @@ export function ProfilePage() {
                     <div className="absolute inset-y-0 left-0 pl-[12px] lg:pl-[14px] flex items-center pointer-events-none">
                       <Mail className="w-[16px] h-[16px] text-[#968D88]" />
                     </div>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       readOnly
                       disabled
                       value={email}
@@ -251,8 +251,8 @@ export function ProfilePage() {
               </div>
 
               <div className="mt-auto pt-[16px] lg:pt-[20px] flex justify-end">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isUpdatingProfile}
                   className="h-[42px] lg:h-[44px] min-w-[160px] px-[20px] bg-[#7A1830] hover:bg-[#641326] disabled:opacity-70 text-white text-[13px] lg:text-[14px] font-semibold rounded-[9px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2"
                 >
@@ -276,7 +276,7 @@ export function ProfilePage() {
 
             <form onSubmit={handlePasswordSave} className="flex flex-col">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-[18px] lg:gap-x-[20px] gap-y-[12px] lg:gap-y-[14px]">
-                
+
                 {/* Current Password - Full Width */}
                 <div className="flex flex-col gap-[6px] md:col-span-2">
                   <label className="text-[13px] font-medium text-[#242124] leading-[18px]">
@@ -286,7 +286,7 @@ export function ProfilePage() {
                     <div className="absolute inset-y-0 left-0 pl-[12px] lg:pl-[14px] flex items-center pointer-events-none">
                       <LockKeyhole className="w-[16px] h-[16px] text-[#968D88]" />
                     </div>
-                    <input 
+                    <input
                       type={showCurrentPassword ? "text" : "password"}
                       required
                       value={currentPassword}
@@ -294,7 +294,7 @@ export function ProfilePage() {
                       placeholder="••••••••••••"
                       className="w-full h-[44px] lg:h-[46px] pl-[36px] lg:pl-[40px] pr-[40px] lg:pr-[44px] border border-[#EAE5E0] rounded-[9px] bg-white text-[14px] lg:text-[15px] text-[#242124] placeholder:text-[#968D88] outline-none focus:border-[#7A1830] focus:ring-1 focus:ring-[#7A1830]"
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                       aria-label={showCurrentPassword ? "Hide password" : "Show password"}
@@ -318,7 +318,7 @@ export function ProfilePage() {
                     <div className="absolute inset-y-0 left-0 pl-[12px] lg:pl-[14px] flex items-center pointer-events-none">
                       <LockKeyhole className="w-[16px] h-[16px] text-[#968D88]" />
                     </div>
-                    <input 
+                    <input
                       type={showNewPassword ? "text" : "password"}
                       required
                       value={newPassword}
@@ -326,7 +326,7 @@ export function ProfilePage() {
                       placeholder="••••••••••••"
                       className="w-full h-[44px] lg:h-[46px] pl-[36px] lg:pl-[40px] pr-[40px] lg:pr-[44px] border border-[#EAE5E0] rounded-[9px] bg-white text-[14px] lg:text-[15px] text-[#242124] placeholder:text-[#968D88] outline-none focus:border-[#7A1830] focus:ring-1 focus:ring-[#7A1830]"
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                       aria-label={showNewPassword ? "Hide password" : "Show password"}
@@ -339,7 +339,7 @@ export function ProfilePage() {
                       )}
                     </button>
                   </div>
-                  
+
                   {/* Password Requirements List */}
                   {newPassword.length > 0 && (
                     <div className="flex flex-row flex-wrap gap-x-[12px] gap-y-[4px] mt-[6px]">
@@ -368,7 +368,7 @@ export function ProfilePage() {
                     <div className="absolute inset-y-0 left-0 pl-[12px] lg:pl-[14px] flex items-center pointer-events-none">
                       <LockKeyhole className="w-[16px] h-[16px] text-[#968D88]" />
                     </div>
-                    <input 
+                    <input
                       type={showConfirmPassword ? "text" : "password"}
                       required
                       value={confirmPassword}
@@ -376,7 +376,7 @@ export function ProfilePage() {
                       placeholder="••••••••••••"
                       className="w-full h-[44px] lg:h-[46px] pl-[36px] lg:pl-[40px] pr-[40px] lg:pr-[44px] border border-[#EAE5E0] rounded-[9px] bg-white text-[14px] lg:text-[15px] text-[#242124] placeholder:text-[#968D88] outline-none focus:border-[#7A1830] focus:ring-1 focus:ring-[#7A1830]"
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       aria-label={showConfirmPassword ? "Hide password" : "Show password"}
@@ -394,8 +394,8 @@ export function ProfilePage() {
               </div>
 
               <div className="mt-auto pt-[16px] lg:pt-[20px] flex justify-end">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isUpdatingPassword}
                   className="h-[42px] lg:h-[44px] min-w-[176px] px-[20px] bg-[#7A1830] hover:bg-[#641326] disabled:opacity-70 text-white text-[13px] lg:text-[14px] font-semibold rounded-[9px] transition-colors focus:outline-none focus:ring-2 focus:ring-[#7A1830] focus:ring-offset-2"
                 >

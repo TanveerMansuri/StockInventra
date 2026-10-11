@@ -35,26 +35,38 @@ export function ReportsPage() {
     return q;
   };
 
+  const computePeriodLabel = () => {
+    if (period === "today") return "Today";
+    if (period === "thisWeek") return "This Week";
+    if (period === "thisMonth") return "This Month";
+    if (period === "thisYear") return "This Year";
+    if (period === "custom") {
+      return startDate && endDate ? `${startDate} to ${endDate}` : "Custom Date Range";
+    }
+    return "All Time";
+  };
+
   const handleView = async (id: string, title: string) => {
     setActiveReport({ id, title });
-    
-    let label = "";
-    if (period === "today") label = "Today";
-    else if (period === "thisWeek") label = "This Week";
-    else if (period === "thisMonth") label = "This Month";
-    else if (period === "custom") label = `${startDate} - ${endDate}`;
-    setPeriodLabel(label);
-
+    setPeriodLabel(computePeriodLabel());
+    setReportData(null);
     setModalOpen(true);
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get<{ success: boolean, data: any }>(`/reports/${id}${buildQuery()}`);
-      setReportData(res.data);
+      const res = await apiClient.get<any>(`/reports/${id}${buildQuery()}`);
+      const payload = res?.data ?? res;
+      setReportData(payload);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to load report");
+      setError(err?.response?.data?.message || err?.message || "Failed to load report data. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (activeReport) {
+      handleView(activeReport.id, activeReport.title);
     }
   };
 
@@ -127,10 +139,12 @@ export function ReportsPage() {
         isOpen={modalOpen} 
         onClose={() => setModalOpen(false)}
         title={activeReport?.title || "Report"}
+        reportType={activeReport?.id || "sales"}
         reportData={reportData}
         isLoading={isLoading}
         error={error}
         periodLabel={periodLabel}
+        onRetry={handleRetry}
       />
     </PageContainer>
   );

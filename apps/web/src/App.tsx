@@ -15,7 +15,7 @@ import { CategoriesPage } from './features/categories/CategoriesPage';
 import { AnalyticsPage } from './features/analytics/AnalyticsPage';
 import { ReportsPage } from './features/reports/ReportsPage';
 import { SettingsPage } from './features/settings/SettingsPage';
-import { ProfilePage } from './features/profile/ProfilePage';
+// Preserved for future use: import { ProfilePage } from './features/profile/ProfilePage';
 
 function App() {
   return (
@@ -44,7 +44,7 @@ function App() {
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile" element={<Navigate to="/settings" replace />} />
               </Routes>
             </AppShell>
           </ProtectedRoute>

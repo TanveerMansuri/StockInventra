@@ -8,6 +8,7 @@ export interface PendingSaleItem {
   discountValue: number;
   calculatedDiscount: number;
   subtotal: number;
+  taxRate: number;
   taxAmount: number;
   finalAmount: number;
   totalCost: number;

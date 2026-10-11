@@ -16,6 +16,7 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     });
     return movements.map((m: any) => ({
       ...m,
+      quantity: m.quantity?.toNumber ? m.quantity.toNumber() : Number(m.quantity),
       type: m.type as "PURCHASE" | "SALE" | "ADJUSTMENT" | "RETURN",
       createdAt: m.createdAt.toISOString()
     }));
@@ -34,6 +35,7 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     });
     return {
       ...movement,
+      quantity: movement.quantity?.toNumber ? movement.quantity.toNumber() : Number(movement.quantity),
       type: movement.type as "PURCHASE" | "SALE" | "ADJUSTMENT" | "RETURN",
       createdAt: movement.createdAt.toISOString()
     };
@@ -49,16 +51,21 @@ export class PrismaInventoryRepository implements InventoryRepository {
       where: { productId: product.id }
     });
     
-    let stockIn = product.initialStock;
+    const initialStock = product.initialStock?.toNumber ? product.initialStock.toNumber() : Number(product.initialStock || 0);
+    const currentStock = product.currentStock?.toNumber ? product.currentStock.toNumber() : Number(product.currentStock || 0);
+    const lowStockThreshold = product.lowStockThreshold?.toNumber ? product.lowStockThreshold.toNumber() : Number(product.lowStockThreshold || 0);
+
+    let stockIn = initialStock;
     let sold = 0;
     
     for (const mov of movements) {
+      const qty = mov.quantity?.toNumber ? mov.quantity.toNumber() : Number(mov.quantity || 0);
       if (mov.type === "PURCHASE" || mov.type === "RETURN") {
-        stockIn += mov.quantity;
+        stockIn += qty;
       } else if (mov.type === "SALE") {
-        sold += Math.abs(mov.quantity);
+        sold += Math.abs(qty);
       } else if (mov.type === "ADJUSTMENT") {
-        stockIn += mov.quantity;
+        stockIn += qty;
       }
     }
     
@@ -68,23 +75,24 @@ export class PrismaInventoryRepository implements InventoryRepository {
         name: product.name,
         sku: product.sku,
         categoryId: product.categoryId,
+        unit: product.unit || "Piece",
         purchasePrice: product.purchasePrice.toNumber(),
         marginPercent: product.marginPercent.toNumber(),
         sellingPrice: product.sellingPrice.toNumber(),
         discountPercent: product.discountPercent.toNumber(),
         taxPercent: product.taxPercent.toNumber(),
         finalPrice: product.finalPrice.toNumber(),
-        initialStock: product.initialStock,
-        currentStock: product.currentStock,
-        lowStockThreshold: product.lowStockThreshold,
+        initialStock,
+        currentStock,
+        lowStockThreshold,
         status: product.status as "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK",
         createdAt: product.createdAt.toISOString(),
         updatedAt: product.updatedAt.toISOString(),
       },
-      stockIn,
-      sold,
-      currentStock: product.currentStock,
-      minimumStock: product.lowStockThreshold,
+      stockIn: Math.round(stockIn * 1000) / 1000,
+      sold: Math.round(sold * 1000) / 1000,
+      currentStock,
+      minimumStock: lowStockThreshold,
       status: product.status,
       lastUpdated: product.updatedAt.toISOString(),
     };

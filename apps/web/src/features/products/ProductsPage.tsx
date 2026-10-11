@@ -10,6 +10,7 @@ import { useCategories } from "../../hooks/useCategories";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 import { productsService } from "../../services/api";
 import { DeleteProductModal } from "./DeleteProductModal";
+import { formatQuantityWithUnit } from "@stock-inventra/types";
 
 export function ProductsPage() {
   const [searchParams] = useSearchParams();
@@ -216,7 +217,7 @@ export function ProductsPage() {
                         <td className="px-[20px] py-[12px] text-[#242124] font-medium text-[13px]">{formatCurrency(product.finalPrice)}</td>
                         <td className="px-[20px] py-[12px]">
                           <span className={`text-[13px] font-medium ${product.currentStock <= product.lowStockThreshold ? 'text-[#D97706]' : 'text-[#059669]'}`}>
-                            {product.currentStock.toLocaleString()}
+                            {formatQuantityWithUnit(product.currentStock, product.unit)}
                           </span>
                         </td>
                         <td className="px-[20px] py-[12px]">

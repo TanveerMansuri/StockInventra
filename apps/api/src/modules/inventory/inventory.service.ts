@@ -63,7 +63,7 @@ export class InventoryService {
       netChange = Math.abs(quantity);
     }
 
-    const newStock = product.currentStock + netChange;
+    const newStock = Math.round((product.currentStock + netChange) * 1000) / 1000;
     if (newStock < 0) {
       throw new BusinessRuleError("Insufficient stock");
     }

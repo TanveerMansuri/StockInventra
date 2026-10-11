@@ -1,5 +1,5 @@
 import { ChevronDown, Plus, Package } from "lucide-react";
-import { Product, Category } from "@stock-inventra/types";
+import { Product, Category, UNIT_SHORT_LABELS, formatQuantityWithUnit } from "@stock-inventra/types";
 import { PendingSaleItem } from "./types";
 import { useState, useEffect } from "react";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
@@ -40,35 +40,54 @@ export function SaleItemEntry({
   const { data: settings } = useSettings();
   const currencySymbol = settings?.currency?.currency || 'USD';
 
+  const category = categories.find(c => c.id === categoryId);
+  const product = products.find(p => p.id === selectedProductId);
+
+  // When a product is selected, pre-populate default discount from settings or product
+  useEffect(() => {
+    if (product) {
+      const defaultDisc = product.discountPercent || settings?.inventory?.defaultDiscount || 0;
+      setDiscountType('percentage');
+      setDiscountValue(defaultDisc);
+      setQuantity(1);
+    }
+  }, [product?.id, settings?.inventory?.defaultDiscount]);
+
   useEffect(() => {
     if (error) setLocalError(error);
   }, [error]);
 
-  const category = categories.find(c => c.id === categoryId);
-  const product = products.find(p => p.id === selectedProductId);
-
-  const currentSubtotal = (product?.sellingPrice || 0) * quantity;
+  const unitShort = product ? (UNIT_SHORT_LABELS[product.unit] || product.unit || 'pcs') : '';
+  const currentSubtotal = Math.round(((product?.sellingPrice || 0) * (quantity || 0)) * 100) / 100;
+  
   let currentCalculatedDiscount = 0;
   if (discountType === 'percentage') {
-    currentCalculatedDiscount = (currentSubtotal * discountValue) / 100;
+    currentCalculatedDiscount = Math.round((currentSubtotal * (discountValue || 0) / 100) * 100) / 100;
   } else {
-    currentCalculatedDiscount = discountValue;
+    currentCalculatedDiscount = discountValue || 0;
   }
   
   if (currentCalculatedDiscount > currentSubtotal) {
     currentCalculatedDiscount = currentSubtotal;
   }
 
-  const currentTaxable = currentSubtotal - currentCalculatedDiscount;
-  const currentTaxAmount = (currentTaxable * (product?.taxPercent || 0)) / 100;
-  const currentFinalAmount = currentTaxable + currentTaxAmount;
+  const configuredTaxRate = settings?.currency?.taxRate ?? product?.taxPercent ?? 0;
+  const currentTaxable = Math.round((currentSubtotal - currentCalculatedDiscount) * 100) / 100;
+  const currentTaxAmount = Math.round((currentTaxable * (configuredTaxRate / 100)) * 100) / 100;
+  const currentFinalAmount = Math.round((currentTaxable + currentTaxAmount) * 100) / 100;
 
   const handleAdd = () => {
     if (!product) return;
     
+    if (!quantity || quantity <= 0) {
+      setLocalError("Quantity must be greater than 0.");
+      return;
+    }
+
     const existingQuantity = saleItems.filter(item => item.product.id === product.id).reduce((sum, item) => sum + item.quantity, 0);
-    if (quantity + existingQuantity > product.currentStock) {
-      setLocalError(`Cannot add ${quantity}. Only ${product.currentStock - existingQuantity} remaining.`);
+    const availableStock = Math.round((product.currentStock - existingQuantity) * 1000) / 1000;
+    if (quantity > availableStock) {
+      setLocalError(`Cannot add ${formatQuantityWithUnit(quantity, product.unit)}. Only ${formatQuantityWithUnit(availableStock, product.unit)} remaining.`);
       return;
     }
     
@@ -85,9 +104,10 @@ export function SaleItemEntry({
       discountValue,
       calculatedDiscount: currentCalculatedDiscount,
       subtotal: currentSubtotal,
+      taxRate: configuredTaxRate,
       taxAmount: currentTaxAmount,
       finalAmount: currentFinalAmount,
-      totalCost: product.purchasePrice * quantity
+      totalCost: Math.round((product.purchasePrice * quantity) * 100) / 100
     });
 
     onProductIdChange("");
@@ -140,7 +160,7 @@ export function SaleItemEntry({
                 <ProductAvatar name={product.name} image={product.image} size="xs" />
                 <div className="flex flex-col truncate">
                   <span className="text-[13px] text-[#242124] truncate leading-tight font-medium">{product.name}</span>
-                  <span className="text-[11px] text-[#77706D] truncate leading-tight">SKU: {product.sku} | Stock: {product.currentStock} units</span>
+                  <span className="text-[11px] text-[#77706D] truncate leading-tight">SKU: {product.sku} | Stock: {formatQuantityWithUnit(product.currentStock, product.unit)}</span>
                 </div>
               </div>
             ) : (
@@ -156,36 +176,38 @@ export function SaleItemEntry({
       {/* Inputs Row */}
       <div className="flex gap-[10px] items-start">
         <div className="w-[20%]">
-          <label className="block text-[13px] font-medium text-[#242124] mb-[5px]">
-            Quantity <span className="text-[#C62828]">*</span>
+          <label className="block text-[13px] font-medium text-[#242124] mb-[5px] truncate">
+            Quantity {unitShort && `(${unitShort})`} <span className="text-[#C62828]">*</span>
           </label>
           <input 
             type="number"
-            min="1"
+            step="any"
+            min="0.001"
             max={product?.currentStock || 1}
-            value={quantity || ''}
-            onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+            value={quantity === 0 && !quantity.toString().match(/^0$/) ? '' : quantity}
+            onChange={(e) => setQuantity(e.target.value === '' ? ('' as any) : Number(e.target.value))}
             className="w-full h-[40px] px-[10px] border border-[#EAE5E0] rounded-[8px] bg-[#FFFFFF] text-[14px] text-[#242124] outline-none focus:border-[#7A1830] focus:ring-1 focus:ring-[#7A1830]/30 transition-all disabled:opacity-50"
             disabled={!product}
+            placeholder="1"
           />
           {product && (
-            <div className="text-[11px] text-[#77706D] mt-[4px]">
-              Available stock: {product.currentStock}
+            <div className="text-[11px] text-[#77706D] mt-[4px] truncate">
+              Stock: {formatQuantityWithUnit(product.currentStock, product.unit)}
             </div>
           )}
         </div>
         <div className="w-[24%]">
           <label className="block text-[13px] font-medium text-[#242124] mb-[5px] truncate">
-            Selling Price ({currencySymbol})
+            Unit Price {unitShort ? `(/${unitShort})` : ''}
           </label>
           <input 
-            type="number"
-            value={product?.sellingPrice || 0}
+            type="text"
+            value={product ? `${formatCurrency(product.sellingPrice)}${unitShort ? `/${unitShort}` : ''}` : ''}
             disabled
-            className="w-full h-[40px] px-[10px] border border-[#EAE5E0] rounded-[8px] bg-[#FCFCFB] text-[#77706D] text-[14px] outline-none"
+            className="w-full h-[40px] px-[10px] border border-[#EAE5E0] rounded-[8px] bg-[#FCFCFB] text-[#77706D] text-[14px] outline-none font-medium"
           />
         </div>
-        <div className="w-[32%]">
+        <div className="w-[30%]">
           <label className="block text-[13px] font-medium text-[#242124] mb-[5px]">
             Discount Type
           </label>
@@ -218,12 +240,13 @@ export function SaleItemEntry({
             </label>
           </div>
         </div>
-        <div className="w-[24%]">
+        <div className="w-[26%]">
           <label className="block text-[13px] font-medium text-[#242124] mb-[5px] truncate">
             Discount ({discountType === 'percentage' ? '%' : currencySymbol})
           </label>
           <input 
             type="number"
+            step="any"
             min="0"
             max={discountType === 'percentage' ? 100 : currentSubtotal}
             value={discountValue || ''}
@@ -244,8 +267,8 @@ export function SaleItemEntry({
       </div>
 
       {/* Preview & Add Action */}
-      <div className="bg-[#F5EFE6] rounded-[8px] p-[12px] flex items-center justify-between gap-[16px] mt-[2px] h-[72px]">
-        <div className="flex items-center gap-[24px]">
+      <div className="bg-[#F5EFE6] rounded-[8px] p-[12px] flex items-center justify-between gap-[16px] mt-[2px] min-h-[72px]">
+        <div className="flex items-center gap-[18px] flex-wrap">
           <div className="flex flex-col">
             <span className="text-[16px] font-semibold text-[#242124] leading-tight">
               {formatCurrency(currentSubtotal)}
@@ -259,18 +282,29 @@ export function SaleItemEntry({
             </span>
             <span className="text-[11px] text-[#77706D] mt-[2px]">Discount ({discountType === 'percentage' ? `${discountValue}%` : `${currencySymbol}Fixed`})</span>
           </div>
+          {configuredTaxRate > 0 && (
+            <>
+              <div className="w-[1px] h-[32px] bg-[#EAE5E0]" />
+              <div className="flex flex-col">
+                <span className="text-[16px] font-semibold text-[#242124] leading-tight">
+                  + {formatCurrency(currentTaxAmount)}
+                </span>
+                <span className="text-[11px] text-[#77706D] mt-[2px]">Tax ({configuredTaxRate}%)</span>
+              </div>
+            </>
+          )}
           <div className="w-[1px] h-[32px] bg-[#EAE5E0]" />
           <div className="flex flex-col">
             <span className="text-[18px] font-bold text-[#7A1830] leading-tight">
               {formatCurrency(currentFinalAmount)}
             </span>
-            <span className="text-[11px] text-[#77706D] mt-[2px]">Final Price</span>
+            <span className="text-[11px] text-[#77706D] mt-[2px]">Item Total</span>
           </div>
         </div>
         <button
           type="button"
           onClick={handleAdd}
-          disabled={!product || quantity > product.currentStock}
+          disabled={!product || !quantity || quantity <= 0}
           className="h-[48px] px-[20px] bg-[#7A1830] hover:bg-[#641326] text-[#FFFFFF] font-semibold text-[14px] rounded-[8px] transition-colors flex items-center justify-center gap-[6px] focus:outline-none focus:ring-2 focus:ring-[#7A1830]/30 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
         >
           <Plus size={16} />

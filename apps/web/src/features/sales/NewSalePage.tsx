@@ -2,17 +2,21 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProducts } from "../../hooks/useProducts";
 import { useCategories } from "../../hooks/useCategories";
+import { useSettings } from "../../hooks/useSettings";
 import { salesService } from "../../services/api";
 import { Receipt } from "lucide-react";
 import { CategorySelectionModal } from "./CategorySelectionModal";
 import { ProductSelectionModal } from "./ProductSelectionModal";
 import { SaleItemEntry } from "./SaleItemEntry";
 import { SaleItemsTable } from "./SaleItemsTable";
-import { SaleSummary } from "./SaleSummary";
+import { SaleSummary, SaleCalculationDetails } from "./SaleSummary";
+import { InvoiceModal } from "./InvoiceModal";
 import { PendingSaleItem } from "./types";
+import { Sale } from "@stock-inventra/types";
 
 export function NewSalePage() {
   const navigate = useNavigate();
+  const { data: settings } = useSettings();
   
   const [categoryId, setCategoryId] = useState<string>("");
   const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useCategories({ limit: 100, status: "ACTIVE" });
@@ -21,11 +25,29 @@ export function NewSalePage() {
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [saleItems, setSaleItems] = useState<PendingSaleItem[]>([]);
   
+  // Tax, discount and adjustment states
+  const [enableTax, setEnableTax] = useState<boolean>(true);
+  const [additionalDiscountType, setAdditionalDiscountType] = useState<'percentage' | 'fixed'>('fixed');
+  const [additionalDiscountValue, setAdditionalDiscountValue] = useState<number>(0);
+  const [isRoundingEnabled, setIsRoundingEnabled] = useState<boolean>(false);
+  const [targetFinalAmount, setTargetFinalAmount] = useState<string>("");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  
+  // Invoice Modal State
+  const [completedSale, setCompletedSale] = useState<Sale | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState<boolean>(false);
+
+  // Synchronize tax toggle default with settings
+  useEffect(() => {
+    if (settings?.currency) {
+      setEnableTax((settings.currency.taxRate || 0) > 0);
+    }
+  }, [settings?.currency?.taxRate]);
 
   // Reset product selection if category changes
   useEffect(() => {
@@ -49,6 +71,63 @@ export function NewSalePage() {
     setSaleItems(saleItems.filter(item => item.id !== id));
   };
 
+  // Authoritative calculation pipeline
+  const billSubtotal = Math.round(saleItems.reduce((sum, item) => sum + item.subtotal, 0) * 100) / 100;
+  const defaultDiscountTotal = Math.round(saleItems.reduce((sum, item) => sum + item.calculatedDiscount, 0) * 100) / 100;
+  const taxableAmount = Math.max(0, Math.round((billSubtotal - defaultDiscountTotal) * 100) / 100);
+  
+  const configuredTaxRate = settings?.currency?.taxRate ?? 0;
+  const taxRate = enableTax ? configuredTaxRate : 0;
+  const taxAmount = (enableTax && taxRate > 0)
+    ? Math.round(taxableAmount * (taxRate / 100) * 100) / 100
+    : 0;
+
+  const priceBeforeAdditionalDiscount = Math.round((taxableAmount + taxAmount) * 100) / 100;
+
+  let additionalDiscountTotal = 0;
+  if (additionalDiscountType === 'percentage') {
+    additionalDiscountTotal = Math.round(priceBeforeAdditionalDiscount * ((additionalDiscountValue || 0) / 100) * 100) / 100;
+  } else {
+    additionalDiscountTotal = Math.min(priceBeforeAdditionalDiscount, additionalDiscountValue || 0);
+  }
+
+  const amountBeforeAdjustment = Math.round((priceBeforeAdditionalDiscount - additionalDiscountTotal) * 100) / 100;
+
+  let adjustment = 0;
+  let finalPayable = amountBeforeAdjustment;
+
+  if (targetFinalAmount !== "" && !isNaN(Number(targetFinalAmount))) {
+    const target = Math.max(0, Number(targetFinalAmount));
+    adjustment = Math.round((target - amountBeforeAdjustment) * 100) / 100;
+    finalPayable = target;
+  } else if (isRoundingEnabled) {
+    finalPayable = Math.round(amountBeforeAdjustment);
+    adjustment = Math.round((finalPayable - amountBeforeAdjustment) * 100) / 100;
+  } else {
+    adjustment = 0;
+    finalPayable = amountBeforeAdjustment;
+  }
+
+  const billTotalCost = Math.round(saleItems.reduce((sum, item) => sum + item.totalCost, 0) * 100) / 100;
+  const billGrossProfit = Math.round((finalPayable - billTotalCost) * 100) / 100;
+  const billProfitMargin = finalPayable > 0 ? Math.round(((billGrossProfit / finalPayable) * 100) * 10) / 10 : 0;
+
+  const calculation: SaleCalculationDetails = {
+    billSubtotal,
+    defaultDiscountTotal,
+    taxableAmount,
+    taxRate,
+    taxAmount,
+    priceBeforeAdditionalDiscount,
+    additionalDiscountTotal,
+    amountBeforeAdjustment,
+    adjustment,
+    finalPayable,
+    billTotalCost,
+    billGrossProfit,
+    billProfitMargin
+  };
+
   const handleSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (saleItems.length === 0) return;
@@ -66,10 +145,18 @@ export function NewSalePage() {
         };
       });
 
-      const res = await salesService.createSale({ items: itemsPayload });
+      const res = await salesService.createSale({
+        items: itemsPayload,
+        discount: additionalDiscountTotal,
+        tax: taxAmount,
+        taxRate: taxRate,
+        adjustment: adjustment,
+        finalAmount: finalPayable
+      });
       
       if (res.success) {
-        navigate("/sales");
+        setCompletedSale(res.data);
+        setIsInvoiceModalOpen(true);
       } else {
         setError(res.message || "Failed to create sale");
       }
@@ -78,6 +165,11 @@ export function NewSalePage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCloseInvoice = () => {
+    setIsInvoiceModalOpen(false);
+    navigate("/sales");
   };
 
   return (
@@ -122,7 +214,20 @@ export function NewSalePage() {
 
             {/* Right Sale Summary */}
             <div className="bg-[#FFFFFF] rounded-[12px] border border-[#EAE5E0] shadow-sm flex flex-col h-full min-w-0 min-h-0">
-              <SaleSummary saleItems={saleItems} />
+              <SaleSummary 
+                saleItems={saleItems} 
+                enableTax={enableTax}
+                onToggleTax={setEnableTax}
+                additionalDiscountType={additionalDiscountType}
+                onAdditionalDiscountTypeChange={setAdditionalDiscountType}
+                additionalDiscountValue={additionalDiscountValue}
+                onAdditionalDiscountValueChange={setAdditionalDiscountValue}
+                isRoundingEnabled={isRoundingEnabled}
+                onToggleRounding={setIsRoundingEnabled}
+                targetFinalAmount={targetFinalAmount}
+                onTargetFinalAmountChange={setTargetFinalAmount}
+                calculation={calculation}
+              />
             </div>
           </div>
 
@@ -162,6 +267,12 @@ export function NewSalePage() {
         isLoading={isLoadingProducts}
         error={productsError}
         categoryName={categories.find(c => c.id === categoryId)?.name}
+      />
+
+      <InvoiceModal
+        isOpen={isInvoiceModalOpen}
+        onClose={handleCloseInvoice}
+        sale={completedSale}
       />
     </div>
   );

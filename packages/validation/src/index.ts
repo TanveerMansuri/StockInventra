@@ -22,11 +22,17 @@ export const changePasswordSchema = z.object({
 
 export const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
-  avatar: z.string().refine(val => 
-    val.startsWith('http://') || 
-    val.startsWith('https://') || 
-    val.startsWith('/uploads/'), 
-  "Avatar must be a valid absolute URL or a relative /uploads/ path").nullable().optional(),
+  avatar: z
+    .string()
+    .refine(
+      (val) =>
+        val.startsWith("http://") ||
+        val.startsWith("https://") ||
+        val.startsWith("/uploads/"),
+      "Avatar must be a valid absolute URL or a relative /uploads/ path"
+    )
+    .nullable()
+    .optional(),
 });
 
 // Product
@@ -34,6 +40,7 @@ export const createProductSchema = z.object({
   name: z.string().min(2),
   sku: z.string().min(2),
   categoryId: z.string().min(1),
+  unit: z.string().min(1).default("Piece"),
   purchasePrice: z.number().min(0),
   marginPercent: z.number().min(0),
   discountPercent: z.number().min(0).max(100).default(0),
@@ -59,38 +66,50 @@ export const updateCategorySchema = createCategorySchema.partial();
 export const inventoryAdjustmentSchema = z.object({
   productId: z.string().min(1),
   type: z.enum(["PURCHASE", "SALE", "ADJUSTMENT", "RETURN"]),
-  quantity: z.number().int().refine(val => val !== 0, "Quantity cannot be zero"),
+  quantity: z.number().refine((val) => val !== 0, "Quantity cannot be zero"),
   note: z.string().optional(),
 });
 
 // Sale
 export const saleItemSchema = z.object({
   productId: z.string().min(1),
-  quantity: z.number().int().min(1),
+  quantity: z.number().positive("Quantity must be greater than zero"),
   discount: z.number().min(0).max(100).default(0),
+  taxRate: z.number().min(0).max(100).optional(),
 });
 
 export const createSaleSchema = z.object({
-  items: z.array(saleItemSchema).min(1),
+  items: z.array(saleItemSchema).min(1, "At least one item is required"),
+  discount: z.number().min(0).optional(), // Optional additional customer discount
+  tax: z.number().min(0).optional(),
+  taxRate: z.number().min(0).max(100).optional(),
+  adjustment: z.number().optional(), // Round-off or negotiated final adjustment
+  finalAmount: z.number().min(0).optional(),
 });
 
 // Settings
 export const updateSettingsSchema = z.object({
-  business: z.object({
-    businessName: z.string().min(1),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    address: z.string().optional(),
-    logo: z.string().url().optional().nullable(),
-  }).optional(),
-  inventory: z.object({
-    lowStockThreshold: z.number().min(0),
-    defaultMargin: z.number().min(0),
-    defaultDiscount: z.number().min(0).max(100),
-  }).optional(),
-  currency: z.object({
-    country: z.string().min(2).optional(),
-    currency: z.string().min(2),
-    taxRate: z.number().min(0).max(100),
-  }).optional(),
+  business: z
+    .object({
+      businessName: z.string().min(1),
+      email: z.string().email(),
+      phone: z.string().optional(),
+      address: z.string().optional(),
+      logo: z.string().url().optional().nullable(),
+    })
+    .optional(),
+  inventory: z
+    .object({
+      lowStockThreshold: z.number().min(0),
+      defaultMargin: z.number().min(0),
+      defaultDiscount: z.number().min(0).max(100),
+    })
+    .optional(),
+  currency: z
+    .object({
+      country: z.string().min(2).optional(),
+      currency: z.string().min(2),
+      taxRate: z.number().min(0).max(100),
+    })
+    .optional(),
 });

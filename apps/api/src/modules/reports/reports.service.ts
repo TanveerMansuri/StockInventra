@@ -13,43 +13,54 @@ export class ReportsService {
   private parseDateRange(query: any) {
     const period = query.period || "thisMonth";
     const now = new Date();
-    let start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    let end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    let start: Date;
+    let end: Date;
 
     if (period === "today") {
-      // Keep default
+      start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
     } else if (period === "yesterday") {
-      start = new Date(start.getTime() - 24 * 60 * 60 * 1000);
-      end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      start = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0, 0);
+      end = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59, 999);
     } else if (period === "thisWeek") {
-      const day = start.getDay();
-      const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Monday
-      start = new Date(start.setDate(diff));
-      start.setHours(0,0,0,0);
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday
+      start = new Date(now.getFullYear(), now.getMonth(), diff, 0, 0, 0, 0);
+      const sunday = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+      end = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate(), 23, 59, 59, 999);
     } else if (period === "lastWeek") {
-      const day = start.getDay();
-      const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-      start = new Date(start.setDate(diff - 7));
-      start.setHours(0,0,0,0);
-      end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1) - 7;
+      start = new Date(now.getFullYear(), now.getMonth(), diff, 0, 0, 0, 0);
+      const sunday = new Date(start.getTime() + 6 * 24 * 60 * 60 * 1000);
+      end = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate(), 23, 59, 59, 999);
     } else if (period === "thisMonth") {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     } else if (period === "lastMonth") {
-      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      end = new Date(now.getFullYear(), now.getMonth(), 1);
+      start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    } else if (period === "thisYear") {
+      start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+      end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
     } else if (period === "custom" && query.startDate && query.endDate) {
-      start = new Date(query.startDate);
-      start.setHours(0,0,0,0);
-      end = new Date(query.endDate);
-      end.setHours(0,0,0,0);
-      end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
+      const [sYear, sMonth, sDay] = String(query.startDate).split("-").map(Number);
+      const [eYear, eMonth, eDay] = String(query.endDate).split("-").map(Number);
+      start = new Date(sYear, sMonth - 1, sDay, 0, 0, 0, 0);
+      end = new Date(eYear, eMonth - 1, eDay, 23, 59, 59, 999);
+    } else {
+      start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     }
     return { start, end };
   }
 
-  private isWithin(dateStr: string, start: Date, end: Date) {
-    const d = new Date(dateStr);
-    return d >= start && d < end;
+  private isWithin(dateVal: any, start: Date, end: Date) {
+    if (!dateVal) return false;
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return false;
+    return d >= start && d <= end;
   }
 
   async getSalesReport(query: any) {

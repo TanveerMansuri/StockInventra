@@ -4,6 +4,7 @@ import { useInventory } from "../../hooks/useInventory";
 import { useCategories } from "../../hooks/useCategories";
 import { Search, ChevronDown } from "lucide-react";
 import { ProductAvatar } from "../../components/common/ProductAvatar";
+import { formatQuantityWithUnit } from "@stock-inventra/types";
 
 export function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -134,14 +135,14 @@ export function InventoryPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-[20px] py-[12px] text-[14px] text-[#77706D] font-medium">{item.stockIn}</td>
-                    <td className="px-[20px] py-[12px] text-[14px] text-[#77706D] font-medium">{item.sold}</td>
+                    <td className="px-[20px] py-[12px] text-[14px] text-[#77706D] font-medium">{formatQuantityWithUnit(item.stockIn, item.product?.unit)}</td>
+                    <td className="px-[20px] py-[12px] text-[14px] text-[#77706D] font-medium">{formatQuantityWithUnit(item.sold, item.product?.unit)}</td>
                     <td className="px-[20px] py-[12px]">
                       <span className={`text-[14px] font-bold ${getStockColor(item.currentStock, item.minimumStock)}`}>
-                        {item.currentStock}
+                        {formatQuantityWithUnit(item.currentStock, item.product?.unit)}
                       </span>
                     </td>
-                    <td className="px-[20px] py-[12px] text-[14px] text-[#77706D] font-medium">{item.minimumStock}</td>
+                    <td className="px-[20px] py-[12px] text-[14px] text-[#77706D] font-medium">{formatQuantityWithUnit(item.minimumStock, item.product?.unit)}</td>
                     <td className="px-[20px] py-[12px]">
                       <span className={`inline-flex items-center px-[10px] py-[4px] rounded-full text-[12px] font-semibold ${getStatusClasses(item.status)}`}>
                         {item.status.replace("_", " ")}

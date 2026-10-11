@@ -5,6 +5,7 @@ import { Pencil, ArrowLeft } from "lucide-react";
 import { ProductAvatar } from "../../components/common/ProductAvatar";
 import { useProduct } from "../../hooks/useProduct";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
+import { formatQuantityWithUnit } from "@stock-inventra/types";
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -72,6 +73,10 @@ export function ProductDetailPage() {
                     </Badge>
                   </div>
                   <div>
+                    <p className="text-small text-text-secondary">Unit</p>
+                    <p className="text-body-strong">{product.unit || "Piece"}</p>
+                  </div>
+                  <div>
                     <p className="text-small text-text-secondary">Purchase Price</p>
                     <p className="text-body-strong">{formatCurrency(product.purchasePrice)}</p>
                   </div>
@@ -99,11 +104,11 @@ export function ProductDetailPage() {
               <div className="flex flex-col gap-16">
                 <div className="flex items-center justify-between border-b border-border pb-12">
                   <span className="text-body text-text-secondary">Current Stock</span>
-                  <span className="text-section-title">{product.currentStock}</span>
+                  <span className="text-section-title">{formatQuantityWithUnit(product.currentStock, product.unit)}</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-border pb-12">
                   <span className="text-body text-text-secondary">Low Stock Threshold</span>
-                  <span className="text-body-strong">{product.lowStockThreshold}</span>
+                  <span className="text-body-strong">{formatQuantityWithUnit(product.lowStockThreshold, product.unit)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-body text-text-secondary">Total Value</span>

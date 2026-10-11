@@ -5,6 +5,8 @@ import { useProducts } from "../../hooks/useProducts";
 import { salesService } from "../../services/api";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 import { Search, Plus, Calendar, Filter, MoreHorizontal, ChevronLeft, ChevronRight, Receipt, XCircle, ChevronDown } from "lucide-react";
+import { InvoiceModal } from "./InvoiceModal";
+import { Sale } from "@stock-inventra/types";
 
 export function SalesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +18,7 @@ export function SalesPage() {
   const { data: sales, isLoading, error, refetch } = useSales({ limit: 100 });
   const { data: products } = useProducts({ limit: 100 });
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [selectedInvoiceSale, setSelectedInvoiceSale] = useState<Sale | null>(null);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -257,10 +260,10 @@ export function SalesPage() {
                   
                   const itemsCount = sale.items?.length || 0;
                   
-                  // Calculate tax if not present explicitly. 
-                  // Final Amount = Subtotal - Discount + Tax => Tax = Final Amount - Subtotal + Discount
-                  const calculatedTax = sale.finalAmount - sale.subtotal + sale.discount;
-                  const tax = Math.max(0, calculatedTax);
+                  // Use explicit persisted tax or fallback for historical sales
+                  const tax = (sale.tax !== undefined && sale.tax !== null) 
+                    ? sale.tax 
+                    : Math.max(0, sale.finalAmount - sale.subtotal + sale.discount);
 
                   return (
                     <tr key={sale.id} className="border-b border-[#EAE5E0] last:border-0 hover:bg-[#FDFCF9] transition-colors h-[80px]">
@@ -301,10 +304,13 @@ export function SalesPage() {
                               <div className="absolute right-0 top-[52px] w-[180px] bg-white border border-[#EAE5E0] rounded-[10px] shadow-lg z-20 py-[6px]">
                                 <button 
                                   className="w-full text-left px-[16px] py-[10px] text-[14px] text-[#242124] hover:bg-[#F5EFE6] flex items-center"
-                                  onClick={() => setOpenDropdownId(null)}
+                                  onClick={() => {
+                                    setOpenDropdownId(null);
+                                    setSelectedInvoiceSale(sale);
+                                  }}
                                 >
                                   <Receipt size={16} className="mr-[10px] text-[#77706D]" />
-                                  View Details
+                                  View Invoice
                                 </button>
                                 {sale.status === "COMPLETED" && (
                                   <button 
@@ -360,6 +366,11 @@ export function SalesPage() {
         )}
       </div>
 
+      <InvoiceModal
+        isOpen={!!selectedInvoiceSale}
+        sale={selectedInvoiceSale}
+        onClose={() => setSelectedInvoiceSale(null)}
+      />
     </div>
   );
 }

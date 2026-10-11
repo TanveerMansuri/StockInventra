@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { PageContainer } from "../../components/layout/PageContainer";
 import { Input, Select, Textarea } from "@stock-inventra/ui";
 import { productsService, categoriesService } from "../../services/api";
-import { Category } from "@stock-inventra/types";
+import { Category, PRODUCT_UNITS, UNIT_SHORT_LABELS } from "@stock-inventra/types";
 import { useSettings } from "../../hooks/useSettings";
 import { useCurrencyFormatter } from "../../hooks/useCurrencyFormatter";
 
@@ -24,6 +24,7 @@ export function AddProductPage() {
   const [name, setName] = useState("");
   const [sku, setSku] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [unit, setUnit] = useState("Piece");
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [margin, setMargin] = useState<number>(0);
   const [discount, setDiscount] = useState<number>(0);
@@ -64,6 +65,7 @@ export function AddProductPage() {
           setName(product.name);
           setSku(product.sku);
           setCategoryId(product.categoryId);
+          setUnit(product.unit || "Piece");
           setPurchasePrice(product.purchasePrice);
           setMargin(product.marginPercent);
           setDiscount(product.discountPercent);
@@ -92,6 +94,7 @@ export function AddProductPage() {
         name,
         sku,
         categoryId,
+        unit,
         purchasePrice,
         marginPercent: margin,
         discountPercent: discount,
@@ -170,9 +173,20 @@ export function AddProductPage() {
                 />
               </div>
               <div className="col-span-12 sm:col-span-6">
+                <Select 
+                  label="Unit of Measurement" 
+                  value={unit}
+                  onChange={e => setUnit(e.target.value)}
+                  options={PRODUCT_UNITS.map(u => ({ label: `${u} (${(UNIT_SHORT_LABELS as any)[u] || u})`, value: u }))} 
+                  required
+                />
+              </div>
+
+              <div className="col-span-12 sm:col-span-6">
                 <Input 
                   label={`Purchase Price (${currencySymbol})`}
                   type="number" 
+                  step="any"
                   value={purchasePrice || ''}
                   onChange={(e) => setPurchasePrice(Number(e.target.value))}
                   placeholder="250" 
@@ -185,6 +199,7 @@ export function AddProductPage() {
                 <Input 
                   label="Margin (%)" 
                   type="number" 
+                  step="any"
                   value={margin || ''}
                   onChange={(e) => setMargin(Number(e.target.value))}
                   placeholder="40" 
@@ -205,6 +220,7 @@ export function AddProductPage() {
                 <Input 
                   label="Discount (%)" 
                   type="number" 
+                  step="any"
                   value={discount || ''}
                   onChange={(e) => setDiscount(Number(e.target.value))}
                   placeholder="0" 
@@ -215,6 +231,7 @@ export function AddProductPage() {
                 <Input 
                   label="Tax (%)" 
                   type="number" 
+                  step="any"
                   value={tax || ''}
                   onChange={(e) => {
                     const val = Number(e.target.value);
@@ -230,6 +247,7 @@ export function AddProductPage() {
                 <Input 
                   label="Initial Stock" 
                   type="number" 
+                  step="any"
                   value={initialStock === 0 && !initialStock.toString().match(/^0$/) ? '' : initialStock}
                   onChange={e => setInitialStock(Number(e.target.value))}
                   placeholder="100" 
@@ -241,6 +259,7 @@ export function AddProductPage() {
                 <Input 
                   label="Low Stock Threshold" 
                   type="number" 
+                  step="any"
                   value={lowStockThreshold === 0 && !lowStockThreshold.toString().match(/^0$/) ? '' : lowStockThreshold}
                   onChange={e => setLowStockThreshold(Number(e.target.value))}
                   placeholder="20" 

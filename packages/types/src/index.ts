@@ -27,12 +27,54 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+// Product Units of Measurement
+export const PRODUCT_UNITS = [
+  "Piece",
+  "Kilogram",
+  "Gram",
+  "Litre",
+  "Millilitre",
+  "Packet",
+  "Box",
+  "Dozen",
+  "Metre",
+] as const;
+
+export type ProductUnit = (typeof PRODUCT_UNITS)[number];
+
+// Standard abbreviations for display
+export const UNIT_SHORT_LABELS: Record<string, string> = {
+  Piece: "pcs",
+  Kilogram: "kg",
+  Gram: "g",
+  Litre: "L",
+  Millilitre: "ml",
+  Packet: "pkt",
+  Box: "box",
+  Dozen: "doz",
+  Metre: "m",
+};
+
+/**
+ * Format quantity and unit cleanly:
+ * e.g. formatQuantityWithUnit(2, "Kilogram") -> "2 kg"
+ * e.g. formatQuantityWithUnit(0.5, "Kilogram") -> "0.5 kg"
+ * e.g. formatQuantityWithUnit(3, "Piece") -> "3 pcs"
+ */
+export function formatQuantityWithUnit(quantity: number, unit: string = "Piece"): string {
+  const shortUnit = UNIT_SHORT_LABELS[unit] || unit;
+  // Format numbers cleanly removing unnecessary trailing zeros (e.g. 0.5 instead of 0.500)
+  const formattedNumber = Number(Number(quantity).toFixed(3)).toString();
+  return `${formattedNumber} ${shortUnit}`;
+}
+
 // Product
 export interface Product {
   id: string;
   name: string;
   sku: string;
   categoryId: string;
+  unit: string;
   purchasePrice: number;
   marginPercent: number;
   sellingPrice: number;
@@ -87,17 +129,23 @@ export interface InventoryItem {
 export interface SaleItem {
   id: string;
   productId: string;
+  unit?: string;
   quantity: number;
   unitPrice: number;
   subtotal: number;
   discount: number;
+  taxRate?: number;
+  taxAmount?: number;
   finalAmount: number;
+  product?: Product;
 }
 
 export interface Sale {
   id: string;
   subtotal: number;
   discount: number;
+  tax: number;
+  adjustment: number;
   finalAmount: number;
   totalCost: number;
   grossProfit: number;
