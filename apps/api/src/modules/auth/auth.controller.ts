@@ -3,16 +3,17 @@ import { AuthService } from "./auth.service";
 import { AuthenticatedRequest } from "../../types";
 
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { session, user } = await this.authService.login(req.body);
-      
+
       res.cookie("sessionId", session.id, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        // sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         expires: session.expiresAt,
       });
 
